@@ -4,8 +4,14 @@
   "description": "Simple online battleship game that I design for mae when lectures are boring",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "dev": "nodemon index.js, nodemon app.js",
+    "start": "node index.js, node app.js"
   },
   "author": "Vincent Astolfi",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5",
+    "uuid": "^9.0.1"
+  }
 }

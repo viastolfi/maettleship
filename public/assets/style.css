@@ -1,0 +1,8 @@
+#game {
+    display: flex;
+    flex-direction: row;
+}
+
+.hidden-element {
+    display: none;
+}
