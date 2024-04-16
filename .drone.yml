@@ -1,0 +1,30 @@
+kind: pipeline
+type: docker
+name: maettleship
+
+trigger:
+  event:
+    - push
+
+steps:
+  - name: maettleship-build
+    image: plugins/docker
+    settings:
+      dockerfile: Dockerfile
+      context: .
+      registry: hub.codefirst.iut.uca.fr
+      repo: hub.codefirst.iut.uca.fr/vincent.astolfi/maettleship
+      username:
+        from_secret: registry-username
+      password:
+        from_secret: registry-password
+
+  - name: maettleship-deployment
+    image: hub.codefirst.iut.uca.fr/thomas.bellembois/codefirst-dockerproxy-clientdrone:latest
+    environment:
+      IMAGENAME: hub.codefirst.iut.uca.fr/vincent.astolfi/maettleship:latest
+      CONTAINERNAME: maettleship
+      COMMAND: create
+      OVERWRITE: true
+      ADMINS: vincentastolfi
+    depends_on: [maettleship-build]
