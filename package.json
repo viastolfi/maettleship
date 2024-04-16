@@ -1,0 +1,11 @@
+{
+  "name": "maettleship",
+  "version": "1.0.0",
+  "description": "Simple online battleship game that I design for mae when lectures are boring",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Vincent Astolfi",
+  "license": "ISC"
+}
