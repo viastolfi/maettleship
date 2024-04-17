@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http);
+const port = 8081;
 
 const { Player } = require(`${__dirname}/businesses/Player.js`);
 const { Room } = require(`${__dirname}/businesses/Room.js`);
@@ -11,6 +12,10 @@ let game;
 let players = [];
 
 app.use(express.static("public"));
+
+http.listen(port, () => {
+  console.log(`Listening on http://localhost:${port}`);
+});
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/index.html"));
