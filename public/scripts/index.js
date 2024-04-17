@@ -102,4 +102,3 @@ function onJoinRoom(player) {
 }
 
 setTimeout(startConnection, 100);
-console.log("coucou");

@@ -21,6 +21,8 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/public/index.html"));
 });
 
+console.log("server is working well");
+
 io.on("connection", (socket) => {
   console.log("New connected : ", socket.id);
   /* TODO : handle disconnection
