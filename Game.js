@@ -1,3 +1,5 @@
+const { io } = require(`${__dirname}/index.js`);
+
 class Game {
   constructor(room) {
     this.room = room;
