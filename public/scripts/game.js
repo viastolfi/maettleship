@@ -164,23 +164,26 @@ function rotatePiece(player, piece) {
 
     player.pieces.forEach((p) => {
       if (p.id === piece.id && p.isSelected) {
-        console.log(p);
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
           for (let j = p.startPos.y; j <= p.endPos.y; j++) {
             player.grid.cases[i][j].piece = "";
             player.grid.cases[i][j].isShip = false;
           }
         }
-        p.vertical ? (p.vertical = false) : (p.vertical = true);
-        let oldPos = p.endPos;
-        p.endPos = { x: oldPos.y, y: oldPos.x };
+        if (p.vertical) {
+          p.endPos = { x: p.startPos.x + p.size - 1, y: p.startPos.y };
+          p.vertical = false;
+        } else {
+          p.endPos = { x: p.startPos.x, y: p.startPos.y + p.size - 1 };
+          p.vertical = true;
+        }
+
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
           for (let j = p.startPos.y; j <= p.endPos.y; j++) {
             player.grid.cases[i][j].piece = p;
             player.grid.cases[i][j].isShip = true;
           }
         }
-        console.log(p);
       }
     });
     drawGrid(player);
