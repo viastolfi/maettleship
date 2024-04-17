@@ -1,22 +1,36 @@
-import { drawGrid, drawEnnemyGrid, play } from "./game.js";
+import { drawGrid, drawEnnemyGrid, play, selectPiece } from "./game.js";
 
 export const socket = io();
 
-socket.on("start game", (game) => {
-  const gameCard = document.querySelector("#game");
+function startConnection() {
+  socket.emit("first connection", socket.id, (response) => {
+    drawGrid(response.player);
+    selectPiece(response.player);
 
-  gameCard.classList.remove("hidden-element");
+    document
+      .querySelector("#start")
+      .addEventListener("click", onCreateRoom(response.player));
+    document
+      .querySelector("#join")
+      .addEventListener("click", onJoinRoom(response.player));
+  });
+}
+
+socket.on("start game", (game) => {
+  const ennemyBoard = document.querySelector("#ennemy_board");
+
+  ennemyBoard.classList.remove("hidden-element");
 
   drawBoards(game);
 });
 
 socket.on("end game", () => {
   console.log("end game");
-  const game = document.querySelector("#game");
+  const ennemyBoard = document.querySelector("#ennemy_board");
   const loader = document.querySelector("#loader");
 
   loader.classList.remove("hidden-element");
-  game.classList.add("hidden-element");
+  ennemyBoard.classList.add("hidden-element");
 });
 
 socket.on("play", () => {
@@ -62,23 +76,28 @@ export function sendMove(move) {
   notification.classList.add("hidden-element");
 }
 
-const onCreateRoom = function (event) {
-  event.preventDefault();
+function onCreateRoom(player) {
+  const handler = function (event) {
+    event.preventDefault();
+    const loader = document.querySelector("#loader");
+    loader.classList.add("hidden-element");
 
-  const loader = document.querySelector("#loader");
-  loader.classList.add("hidden-element");
+    socket.emit("room creation", player);
+  };
 
-  socket.emit("room creation", socket.id);
-};
+  return handler;
+}
 
-const onJoinRoom = function (event) {
-  event.preventDefault();
+function onJoinRoom(player) {
+  const handler = function (event) {
+    event.preventDefault();
+    const loader = document.querySelector("#loader");
+    loader.classList.add("hidden-element");
 
-  const loader = document.querySelector("#loader");
-  loader.classList.add("hidden-element");
+    socket.emit("ask for room", player);
+  };
 
-  socket.emit("ask for room", socket.id);
-};
+  return handler;
+}
 
-document.querySelector("#start").addEventListener("click", onCreateRoom);
-document.querySelector("#join").addEventListener("click", onJoinRoom);
+setTimeout(startConnection, 100);

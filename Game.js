@@ -58,6 +58,18 @@ class Game {
     }
     return w;
   }
+
+  validBoards() {
+    this.room.players.forEach((player) => {
+      player.pieces.forEach((piece) => {
+        for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
+          for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
+            player.grid.cases[i][j].isShip = true;
+          }
+        }
+      });
+    });
+  }
 }
 
 module.exports = {
