@@ -1,14 +1,16 @@
 const express = require("express");
 const app = express();
-const http = require("http").createServer(app);
 const path = require("path");
-const port = 8081;
-const io = require("socket.io")(http);
+const { Server } = require("socket.io");
+const { createServer } = require("node:http");
+
+const server = createServer(app);
+const io = new Server(server);
 
 app.use(express.static("public"));
 
-http.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
+server.listen(8081, () => {
+  console.log("server running ! ");
 });
 
 app.get("/", (req, res) => {
