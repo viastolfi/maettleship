@@ -8,6 +8,7 @@ let game;
 let players = [];
 
 io.on("connection", (socket) => {
+  console.log("New connected : ", socket.id);
   /* TODO : handle disconnection
   socket.on("disconnect", (reason) => {
     if (game.room.players.length === 2) {
@@ -19,6 +20,7 @@ io.on("connection", (socket) => {
   */
 
   socket.on("first connection", (socketId, callback) => {
+    console.log("first connection");
     let player = new Player(socketId);
     players.push(player);
     callback({
