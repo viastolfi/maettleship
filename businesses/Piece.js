@@ -7,6 +7,7 @@ class Piece {
     this.startPos = startPos;
     this.endPos = endPos;
     this.vertical = true;
+    this.isSelected = false;
   }
 }
 

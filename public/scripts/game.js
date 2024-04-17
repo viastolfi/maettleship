@@ -7,20 +7,7 @@ const ennemyCanvas = document.getElementById("ennemy_board");
 const ennemyCtx = ennemyCanvas.getContext("2d");
 
 const CASE_SIZE = 30;
-
-function drawSelectedPiece(piece) {
-  for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
-    for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
-      ownCtx.fillStyle = "#F88379";
-      ownCtx.fillRect(
-        i * CASE_SIZE + 1,
-        j * CASE_SIZE + 1,
-        CASE_SIZE - 1,
-        CASE_SIZE - 1,
-      );
-    }
-  }
-}
+let selectedPiece = "";
 
 export function drawGrid(player) {
   ownCtx.clearRect(0, 0, ownCanvas.height, ownCanvas.width);
@@ -30,13 +17,23 @@ export function drawGrid(player) {
   player.pieces.forEach((piece) => {
     for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
       for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
-        ownCtx.fillStyle = "#A9A9A9";
-        ownCtx.fillRect(
-          i * CASE_SIZE + 1,
-          j * CASE_SIZE + 1,
-          CASE_SIZE - 1,
-          CASE_SIZE - 1,
-        );
+        if (piece.isSelected) {
+          ownCtx.fillStyle = "#F88379";
+          ownCtx.fillRect(
+            i * CASE_SIZE + 1,
+            j * CASE_SIZE + 1,
+            CASE_SIZE - 1,
+            CASE_SIZE - 1,
+          );
+        } else {
+          ownCtx.fillStyle = "#A9A9A9";
+          ownCtx.fillRect(
+            i * CASE_SIZE + 1,
+            j * CASE_SIZE + 1,
+            CASE_SIZE - 1,
+            CASE_SIZE - 1,
+          );
+        }
       }
     }
   });
@@ -128,7 +125,7 @@ function clickNewCase(player, piece) {
   const clickNewCasehandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
     player.pieces.forEach((p) => {
-      if (p.id === piece.id) {
+      if (p.id === piece.id && p.isSelected) {
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
           for (let j = p.startPos.y; j <= p.endPos.y; j++) {
             player.grid.cases[i][j].piece = "";
@@ -154,22 +151,66 @@ function clickNewCase(player, piece) {
           }
         }
       }
+      drawGrid(player);
     });
-    drawGrid(player);
-    ownCanvas.removeEventListener("mousedown", clickNewCasehandler);
-    selectPiece(player);
   };
 
   return clickNewCasehandler;
+}
+
+function rotatePiece(player, piece) {
+  const handler = function (event) {
+    event.preventDefault();
+
+    player.pieces.forEach((p) => {
+      if (p.id === piece.id && p.isSelected) {
+        console.log(p);
+        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+            player.grid.cases[i][j].piece = "";
+            player.grid.cases[i][j].isShip = false;
+          }
+        }
+        p.vertical ? (p.vertical = false) : (p.vertical = true);
+        let oldPos = p.endPos;
+        p.endPos = { x: oldPos.y, y: oldPos.x };
+        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+            player.grid.cases[i][j].piece = p;
+            player.grid.cases[i][j].isShip = true;
+          }
+        }
+        console.log(p);
+      }
+    });
+    drawGrid(player);
+  };
+
+  return handler;
 }
 
 function clickChoose(player) {
   const clickHandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
     if (player.grid.cases[selectedCase.col][selectedCase.row].isShip) {
+      const rotate_button = document.querySelector("#rotate");
+      rotate_button.classList.remove("hidden-element");
+
       let piece = player.grid.cases[selectedCase.col][selectedCase.row].piece;
-      drawSelectedPiece(piece);
-      ownCanvas.removeEventListener("mousedown", clickHandler);
+      let oldPieceId = selectedPiece.id;
+      player.pieces.forEach((p) => {
+        if (p.id === oldPieceId) {
+          p.isSelected = false;
+        }
+        if (p.id === piece.id) {
+          selectedPiece = p;
+          p.isSelected = true;
+        }
+      });
+
+      drawGrid(player);
+
+      rotate_button.addEventListener("click", rotatePiece(player, piece));
       ownCanvas.addEventListener("mousedown", clickNewCase(player, piece));
     }
   };

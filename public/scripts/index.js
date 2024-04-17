@@ -6,6 +6,13 @@ function startConnection() {
   socket.emit("first connection", socket.id, (response) => {
     drawGrid(response.player);
     selectPiece(response.player);
+
+    document
+      .querySelector("#start")
+      .addEventListener("click", onCreateRoom(response.player));
+    document
+      .querySelector("#join")
+      .addEventListener("click", onJoinRoom(response.player));
   });
 }
 
@@ -69,24 +76,28 @@ export function sendMove(move) {
   notification.classList.add("hidden-element");
 }
 
-const onCreateRoom = function (event) {
-  event.preventDefault();
+function onCreateRoom(player) {
+  const handler = function (event) {
+    event.preventDefault();
+    const loader = document.querySelector("#loader");
+    loader.classList.add("hidden-element");
 
-  const loader = document.querySelector("#loader");
-  loader.classList.add("hidden-element");
+    socket.emit("room creation", player);
+  };
 
-  socket.emit("room creation", socket.id);
-};
+  return handler;
+}
 
-const onJoinRoom = function (event) {
-  event.preventDefault();
+function onJoinRoom(player) {
+  const handler = function (event) {
+    event.preventDefault();
+    const loader = document.querySelector("#loader");
+    loader.classList.add("hidden-element");
 
-  const loader = document.querySelector("#loader");
-  loader.classList.add("hidden-element");
+    socket.emit("ask for room", player);
+  };
 
-  socket.emit("ask for room", socket.id);
-};
+  return handler;
+}
 
-document.querySelector("#start").addEventListener("click", onCreateRoom);
-document.querySelector("#join").addEventListener("click", onJoinRoom);
 setTimeout(startConnection, 100);

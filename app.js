@@ -32,24 +32,16 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("room creation", (socketId) => {
-    let player;
-    players.forEach((p) => {
-      if (p.socketId === socketId) player = p;
-    });
+  socket.on("room creation", (player) => {
     room = new Room();
     room.addPlayer(player);
   });
 
-  socket.on("ask for room", (socketId) => {
-    if (room.players.length === 1) {
-      let player = new Player(socketId);
-      player.grid.cases[2][2].isShip = true;
-      room.addPlayer(player);
-      game = new Game(room);
-      game.validBoards();
-      game.start();
-    }
+  socket.on("ask for room", (player) => {
+    room.addPlayer(player);
+    game = new Game(room);
+    game.validBoards();
+    game.start();
   });
 
   socket.on("play", (move) => {
