@@ -121,11 +121,83 @@ function clickPlay(event) {
   sendMove(play);
 }
 
+function validMoove(player, piece, movement) {
+  let isValid = true;
+  player.pieces.forEach((p) => {
+    if (p.id === piece.id) {
+      if (movement.type === "move") {
+        if (p.vertical && movement.selectedCase.row + p.size > 10)
+          isValid = false;
+        if (!p.vertical && movement.selectedCase.col + p.size > 10)
+          isValid = false;
+
+        let colMin, colMax, rowMin, rowMax;
+
+        if (p.vertical) {
+          colMin =
+            movement.selectedCase.col - 1 < 0
+              ? 0
+              : movement.selectedCase.col - 1;
+          colMax =
+            movement.selectedCase.col + 1 > 9
+              ? 9
+              : movement.selectedCase.col + 1;
+          rowMin =
+            movement.selectedCase.row - 1 < 0
+              ? 0
+              : movement.selectedCase.row - 1;
+          rowMax =
+            movement.selectedCase.row + p.size > 9
+              ? 9
+              : movement.selectedCase.row + p.size;
+        } else {
+          colMin =
+            movement.selectedCase.col - 1 < 0
+              ? 0
+              : movement.selectedCase.col - 1;
+          colMax =
+            movement.selectedCase.col + p.size > 9
+              ? 9
+              : movement.selectedCase.col + p.size;
+          rowMin =
+            movement.selectedCase.row - 1 < 0
+              ? 0
+              : movement.selectedCase.row - 1;
+          rowMax =
+            movement.selectedCase.row + 1 > 9
+              ? 9
+              : movement.selectedCase.row + 1;
+        }
+
+        for (let i = colMin; i <= colMax; i++) {
+          for (let j = rowMin; j <= rowMax; j++) {
+            if (
+              player.grid.cases[i][j].isShip &&
+              player.grid.cases[i][j].piece.id !== p.id
+            )
+              isValid = false;
+          }
+        }
+      } else {
+        if (p.vertical && movement.selectedCase.x + p.size > 10)
+          isValid = false;
+        if (!p.vertical && movement.selectedCase.y + p.size > 10)
+          isValid = false;
+      }
+    }
+  });
+  return isValid;
+}
+
 function clickNewCase(player, piece) {
   const clickNewCasehandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
     player.pieces.forEach((p) => {
-      if (p.id === piece.id && p.isSelected) {
+      if (
+        p.id === piece.id &&
+        p.isSelected &&
+        validMoove(player, piece, { type: "move", selectedCase: selectedCase })
+      ) {
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
           for (let j = p.startPos.y; j <= p.endPos.y; j++) {
             player.grid.cases[i][j].piece = "";
@@ -133,15 +205,15 @@ function clickNewCase(player, piece) {
           }
         }
         p.startPos = { x: selectedCase.col, y: selectedCase.row };
-        if (p.isVertical) {
-          p.endPos = {
-            x: selectedCase.col + piece.size - 1,
-            y: selectedCase.row,
-          };
-        } else {
+        if (p.vertical) {
           p.endPos = {
             x: selectedCase.col,
             y: selectedCase.row + piece.size - 1,
+          };
+        } else {
+          p.endPos = {
+            x: selectedCase.col + piece.size - 1,
+            y: selectedCase.row,
           };
         }
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
@@ -163,7 +235,14 @@ function rotatePiece(player, piece) {
     event.preventDefault();
 
     player.pieces.forEach((p) => {
-      if (p.id === piece.id && p.isSelected) {
+      if (
+        p.id === piece.id &&
+        p.isSelected &&
+        validMoove(player, piece, {
+          type: "rotation",
+          selectedCase: p.startPos,
+        })
+      ) {
         for (let i = p.startPos.x; i <= p.endPos.x; i++) {
           for (let j = p.startPos.y; j <= p.endPos.y; j++) {
             player.grid.cases[i][j].piece = "";
