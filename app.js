@@ -1,7 +1,7 @@
-const { io } = require(`${__dirname}/index.js`);
 const { Player } = require(`${__dirname}/businesses/Player.js`);
 const { Room } = require(`${__dirname}/businesses/Room.js`);
 const { Game } = require(`${__dirname}/game.js`);
+const { io } = require(`${__dirname}/index.js`);
 
 let room;
 let game;
