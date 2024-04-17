@@ -5,6 +5,7 @@ const { Game } = require(`${__dirname}/game.js`);
 
 let room;
 let game;
+let players = [];
 
 io.on("connection", (socket) => {
   /* TODO : handle disconnection
@@ -17,6 +18,14 @@ io.on("connection", (socket) => {
   });
   */
 
+  socket.on("first connection", (socketId, callback) => {
+    let player = new Player(socketId);
+    players.push(player);
+    callback({
+      player: player,
+    });
+  });
+
   socket.on("Hello", (callback) => {
     callback({
       Hello: "World",
@@ -24,9 +33,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room creation", (socketId) => {
-    let player = new Player(socketId);
-    player.grid.cases[2][2].isShip = true;
-    player.grid.cases[3][2].isShip = true;
+    let player;
+    players.forEach((p) => {
+      if (p.socketId === socketId) player = p;
+    });
     room = new Room();
     room.addPlayer(player);
   });
@@ -37,6 +47,7 @@ io.on("connection", (socket) => {
       player.grid.cases[2][2].isShip = true;
       room.addPlayer(player);
       game = new Game(room);
+      game.validBoards();
       game.start();
     }
   });
