@@ -4,6 +4,7 @@ export const socket = io();
 
 function startConnection() {
   socket.emit("first connection", socket.id, (response) => {
+    console.log(response);
     drawGrid(response.player);
     selectPiece(response.player);
 
