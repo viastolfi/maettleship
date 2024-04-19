@@ -4,8 +4,8 @@
   "description": "Simple online battleship game that I design for mae when lectures are boring",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js, nodemon app.js",
-    "start": "node index.js, node app.js"
+    "dev": "nodemon app.js",
+    "start": "node app.js"
   },
   "author": "Vincent Astolfi",
   "license": "ISC",
