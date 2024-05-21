@@ -4,9 +4,8 @@ export const socket = io();
 
 function startConnection() {
   socket.emit("first connection", socket.id, (response) => {
-    console.log(response);
-    drawGrid(response.player);
-    selectPiece(response.player);
+    drawGrid();
+    selectPiece();
 
     document
       .querySelector("#start")
@@ -17,12 +16,13 @@ function startConnection() {
   });
 }
 
-socket.on("start game", (game) => {
+socket.on("start game", () => {
   const ennemyBoard = document.querySelector("#ennemy_board");
 
   ennemyBoard.classList.remove("hidden-element");
 
-  drawBoards(game);
+  drawGrid();
+  drawEnnemyGrid();
 });
 
 socket.on("end game", () => {
@@ -40,7 +40,7 @@ socket.on("play", () => {
   play();
 });
 
-socket.on("played move", (game, isHit, isWin) => {
+socket.on("played move", (isHit, isWin) => {
   const hitNotification = document.querySelector("#hit_notification");
   const winNotification = document.querySelector("#win_notification");
 
@@ -50,30 +50,13 @@ socket.on("played move", (game, isHit, isWin) => {
   if (isWin) winNotification.classList.remove("hidden-element");
   else winNotification.classList.add("hidden-element");
 
-  drawBoards(game);
+  drawGrid();
+  drawEnnemyGrid();
 });
-
-function drawBoards(game) {
-  let p, e;
-
-  let p1 = game.room.players[0];
-  let p2 = game.room.players[1];
-
-  if (p1.socketId === socket.id) {
-    p = p1;
-    e = p2;
-  } else {
-    p = p2;
-    e = p1;
-  }
-
-  drawGrid(p);
-  drawEnnemyGrid(e);
-}
 
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
-  socket.emit("play", move);
+  socket.emit("play", socket.id, move);
   notification.classList.add("hidden-element");
 }
 

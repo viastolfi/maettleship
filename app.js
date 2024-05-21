@@ -19,7 +19,6 @@ io.on("connection", (socket) => {
   */
 
   socket.on("first connection", (socketId, callback) => {
-    console.log("first connection");
     let player = new Player(socketId);
     players.push(player);
     callback({
@@ -43,13 +42,73 @@ io.on("connection", (socket) => {
     game = new Game(room);
     game.validBoards();
     game.room.players.forEach((player) => {
-      io.to(player.socketId).emit("start game", game);
+      io.to(player.socketId).emit("start game");
     });
     game.start();
   });
 
-  socket.on("play", (move) => {
+  socket.on("play", (id, move) => {
+    game.modifyEnnemyGrid(id, move);
     game.move(move);
+  });
+
+  socket.on("get player", (id, callback) => {
+    let out = "";
+    players.forEach((p) => {
+      if (p.socketId === id) {
+        out = p;
+      }
+    });
+    callback({
+      player: out,
+    });
+  });
+
+  socket.on("get ennemy", (id, callack) => {
+    let out = "";
+    players.forEach((p) => {
+      if (p.socketId !== id) {
+        out = p;
+      }
+    });
+    callack({
+      player: out,
+    });
+  });
+
+  socket.on("update grid", (id, grid, callback) => {
+    players.forEach((p) => {
+      if (p.socketId === id) {
+        p.grid = grid;
+      }
+    });
+    callback({
+      status: true,
+    });
+  });
+
+  socket.on("update piece", (playerId, piece) => {
+    players.forEach((p) => {
+      if (p.socketId === playerId) {
+        for (let i = 0; i < p.pieces.length; i++) {
+          if (p.pieces[i].id === piece.id) {
+            p.pieces[i] = piece;
+          }
+        }
+      }
+    });
+  });
+
+  socket.on("change selection status", (playerId, pieceId, status) => {
+    players.forEach((p) => {
+      if (p.id === playerId) {
+        p.pieces.forEach((piece) => {
+          if (piece.id === pieceId) {
+            piece.isSelected = status;
+          }
+        });
+      }
+    });
   });
 });
 
@@ -59,7 +118,7 @@ const askToPlay = (game) => {
 
 const playedMoove = (game, isHit, isWin) => {
   game.room.players.forEach((player) => {
-    io.to(player.socketId).emit("played move", game, isHit, isWin);
+    io.to(player.socketId).emit("played move", isHit, isWin);
   });
 };
 
@@ -77,6 +136,13 @@ class Game {
       ? (this.ennemy = this.room.players[1])
       : (this.ennemy = this.room.players[0]);
 
+    players.forEach((p) => {
+      for (let i = 0; i < p.pieces.length; i++) {
+        p.pieces[i].isMovable = false;
+        p.pieces[i].isSelected = false;
+      }
+    });
+
     askToPlay(this);
   }
 
@@ -87,6 +153,14 @@ class Game {
     );
   }
   */
+
+  modifyEnnemyGrid(id, move) {
+    players.forEach((p) => {
+      if (p.socketId !== id) {
+        p.grid.cases[move.col][move.row].isPlayed = true;
+      }
+    });
+  }
 
   move(move) {
     let playedCase = this.ennemy.grid.cases[move.col][move.row];

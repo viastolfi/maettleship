@@ -1,4 +1,4 @@
-import { sendMove } from "./index.js";
+import { sendMove, socket } from "./index.js";
 
 const ownCanvas = document.getElementById("own_board");
 const ownCtx = ownCanvas.getContext("2d");
@@ -9,98 +9,104 @@ const ennemyCtx = ennemyCanvas.getContext("2d");
 const CASE_SIZE = 30;
 let selectedPiece = "";
 
-export function drawGrid(player) {
+export function drawGrid() {
   ownCtx.clearRect(0, 0, ownCanvas.height, ownCanvas.width);
 
   ownCtx.strokeStyle = "black";
 
-  player.pieces.forEach((piece) => {
-    for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
-      for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
-        if (piece.isSelected) {
-          ownCtx.fillStyle = "#F88379";
+  socket.emit("get player", socket.id, (response) => {
+    let player = response.player;
+    player.pieces.forEach((piece) => {
+      for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
+        for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
+          if (piece.isSelected) {
+            ownCtx.fillStyle = "#F88379";
+            ownCtx.fillRect(
+              i * CASE_SIZE + 1,
+              j * CASE_SIZE + 1,
+              CASE_SIZE - 1,
+              CASE_SIZE - 1,
+            );
+          } else {
+            ownCtx.fillStyle = "#A9A9A9";
+            ownCtx.fillRect(
+              i * CASE_SIZE + 1,
+              j * CASE_SIZE + 1,
+              CASE_SIZE - 1,
+              CASE_SIZE - 1,
+            );
+          }
+        }
+      }
+    });
+
+    for (let i = 0; i < player.grid.cases.length; i++) {
+      for (let j = 0; j < player.grid.cases.length; j++) {
+        ownCtx.strokeRect(
+          i * CASE_SIZE + 1,
+          j * CASE_SIZE + 1,
+          CASE_SIZE,
+          CASE_SIZE,
+        );
+
+        if (player.grid.cases[i][j].isPlayed) {
+          const centerX = CASE_SIZE / 2 + i * CASE_SIZE;
+          const centerY = CASE_SIZE / 2 + j * CASE_SIZE;
+          ownCtx.fillStyle = "red";
+
+          const pointSize = 5;
           ownCtx.fillRect(
-            i * CASE_SIZE + 1,
-            j * CASE_SIZE + 1,
-            CASE_SIZE - 1,
-            CASE_SIZE - 1,
-          );
-        } else {
-          ownCtx.fillStyle = "#A9A9A9";
-          ownCtx.fillRect(
-            i * CASE_SIZE + 1,
-            j * CASE_SIZE + 1,
-            CASE_SIZE - 1,
-            CASE_SIZE - 1,
+            centerX - pointSize / 2,
+            centerY - pointSize / 2,
+            pointSize,
+            pointSize,
           );
         }
       }
     }
   });
-
-  for (let i = 0; i < player.grid.cases.length; i++) {
-    for (let j = 0; j < player.grid.cases.length; j++) {
-      ownCtx.strokeRect(
-        i * CASE_SIZE + 1,
-        j * CASE_SIZE + 1,
-        CASE_SIZE,
-        CASE_SIZE,
-      );
-
-      if (player.grid.cases[i][j].isPlayed) {
-        const centerX = CASE_SIZE / 2 + i * CASE_SIZE;
-        const centerY = CASE_SIZE / 2 + j * CASE_SIZE;
-        ownCtx.fillStyle = "red";
-
-        const pointSize = 5;
-        ownCtx.fillRect(
-          centerX - pointSize / 2,
-          centerY - pointSize / 2,
-          pointSize,
-          pointSize,
-        );
-      }
-    }
-  }
 }
 
-export function drawEnnemyGrid(player) {
+export function drawEnnemyGrid() {
   ennemyCtx.strokeStyle = "red";
 
-  for (let i = 0; i < player.grid.cases.length; i++) {
-    for (let j = 0; j < player.grid.cases.length; j++) {
-      ennemyCtx.strokeRect(
-        i * CASE_SIZE + 1,
-        j * CASE_SIZE + 1,
-        CASE_SIZE,
-        CASE_SIZE,
-      );
-
-      if (player.grid.cases[i][j].isShip && player.grid.cases[i][j].isPlayed) {
-        ennemyCtx.fillStyle = "#FFFFCC";
-        ennemyCtx.fillRect(
+  socket.emit("get ennemy", socket.id, (response) => {
+    let player = response.player;
+    for (let i = 0; i < player.grid.cases.length; i++) {
+      for (let j = 0; j < player.grid.cases.length; j++) {
+        ennemyCtx.strokeRect(
           i * CASE_SIZE + 1,
           j * CASE_SIZE + 1,
-          CASE_SIZE - 1,
-          CASE_SIZE - 1,
+          CASE_SIZE,
+          CASE_SIZE,
         );
-      }
 
-      if (player.grid.cases[i][j].isPlayed) {
-        const centerX = CASE_SIZE / 2 + i * CASE_SIZE;
-        const centerY = CASE_SIZE / 2 + j * CASE_SIZE;
-        ennemyCtx.fillStyle = "red";
+        if (player.grid.cases[i][j].isPlayed) {
+          const centerX = CASE_SIZE / 2 + i * CASE_SIZE;
+          const centerY = CASE_SIZE / 2 + j * CASE_SIZE;
 
-        const pointSize = 5;
-        ennemyCtx.fillRect(
-          centerX - pointSize / 2,
-          centerY - pointSize / 2,
-          pointSize,
-          pointSize,
-        );
+          if (player.grid.cases[i][j].isShip) {
+            ennemyCtx.fillStyle = "#FFFFCC";
+            ennemyCtx.fillRect(
+              i * CASE_SIZE + 1,
+              j * CASE_SIZE + 1,
+              CASE_SIZE - 1,
+              CASE_SIZE - 1,
+            );
+          }
+
+          ennemyCtx.fillStyle = "red";
+          const pointSize = 5;
+          ennemyCtx.fillRect(
+            centerX - pointSize / 2,
+            centerY - pointSize / 2,
+            pointSize,
+            pointSize,
+          );
+        }
       }
     }
-  }
+  });
 }
 
 function getCursorPosition(ennemyCanvas, event) {
@@ -189,41 +195,55 @@ function validMoove(player, piece, movement) {
   return isValid;
 }
 
-function clickNewCase(player, piece) {
+function clickNewCase(piece) {
   const clickNewCasehandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
-    player.pieces.forEach((p) => {
-      if (
-        p.id === piece.id &&
-        p.isSelected &&
-        validMoove(player, piece, { type: "move", selectedCase: selectedCase })
-      ) {
-        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
-          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
-            player.grid.cases[i][j].piece = "";
-            player.grid.cases[i][j].isShip = false;
+    socket.emit("get player", socket.id, (response) => {
+      let player = response.player;
+      player.pieces.forEach((p) => {
+        if (
+          p.id === piece.id &&
+          p.isSelected &&
+          p.isMovable &&
+          validMoove(player, piece, {
+            type: "move",
+            selectedCase: selectedCase,
+          })
+        ) {
+          for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+            for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+              player.grid.cases[i][j].piece = "";
+              player.grid.cases[i][j].isShip = false;
+            }
           }
-        }
-        p.startPos = { x: selectedCase.col, y: selectedCase.row };
-        if (p.vertical) {
-          p.endPos = {
-            x: selectedCase.col,
-            y: selectedCase.row + piece.size - 1,
-          };
-        } else {
-          p.endPos = {
-            x: selectedCase.col + piece.size - 1,
-            y: selectedCase.row,
-          };
-        }
-        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
-          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
-            player.grid.cases[i][j].piece = p;
-            player.grid.cases[i][j].isShip = true;
+          p.startPos = { x: selectedCase.col, y: selectedCase.row };
+          if (p.vertical) {
+            p.endPos = {
+              x: selectedCase.col,
+              y: selectedCase.row + piece.size - 1,
+            };
+          } else {
+            p.endPos = {
+              x: selectedCase.col + piece.size - 1,
+              y: selectedCase.row,
+            };
           }
+          for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+            for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+              player.grid.cases[i][j].piece = p;
+              player.grid.cases[i][j].isShip = true;
+            }
+          }
+          socket.emit("update piece", socket.id, p);
+          socket.emit("update grid", socket.id, player.grid, (response) => {
+            if (response.status === true) {
+              drawGrid();
+            } else {
+              // TODO : error handling
+            }
+          });
         }
-      }
-      drawGrid(player);
+      });
     });
   };
 
@@ -238,6 +258,7 @@ function rotatePiece(player, piece) {
       if (
         p.id === piece.id &&
         p.isSelected &&
+        p.isMovable &&
         validMoove(player, piece, {
           type: "rotation",
           selectedCase: p.startPos,
@@ -271,39 +292,42 @@ function rotatePiece(player, piece) {
   return handler;
 }
 
-function clickChoose(player) {
-  const clickHandler = function (event) {
-    let selectedCase = getCursorPosition(ownCanvas, event);
+function clickChoose(event) {
+  event.preventDefault();
+  let selectedCase = getCursorPosition(ownCanvas, event);
+
+  socket.emit("get player", socket.id, (response) => {
+    let player = response.player;
     if (player.grid.cases[selectedCase.col][selectedCase.row].isShip) {
       const rotate_button = document.querySelector("#rotate");
       rotate_button.classList.remove("hidden-element");
 
       let piece = player.grid.cases[selectedCase.col][selectedCase.row].piece;
-      let oldPieceId = selectedPiece.id;
-      player.pieces.forEach((p) => {
-        if (p.id === oldPieceId) {
-          p.isSelected = false;
-        }
-        if (p.id === piece.id) {
-          selectedPiece = p;
-          p.isSelected = true;
-        }
-      });
+      if (piece.isMovable) {
+        let oldPieceId = selectedPiece.id;
+        player.pieces.forEach((p) => {
+          if (p.id === oldPieceId) {
+            socket.emit("change selection status", player.id, p.id, false);
+          }
+          if (p.id === piece.id) {
+            selectedPiece = p;
+            socket.emit("change selection status", player.id, p.id, true);
+          }
+        });
+      }
 
-      drawGrid(player);
+      drawGrid();
 
-      rotate_button.addEventListener("click", rotatePiece(player, piece));
-      ownCanvas.addEventListener("mousedown", clickNewCase(player, piece));
+      rotate_button.addEventListener("click", rotatePiece(piece));
+      ownCanvas.addEventListener("mousedown", clickNewCase(piece));
     }
-  };
-
-  return clickHandler;
+  });
 }
 
 export function play() {
   ennemyCanvas.addEventListener("mousedown", clickPlay);
 }
 
-export function selectPiece(player) {
-  ownCanvas.addEventListener("mousedown", clickChoose(player));
+export function selectPiece() {
+  ownCanvas.addEventListener("mousedown", clickChoose);
 }

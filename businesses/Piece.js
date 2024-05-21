@@ -8,6 +8,7 @@ class Piece {
     this.endPos = endPos;
     this.vertical = true;
     this.isSelected = false;
+    this.isMovable = true;
   }
 }
 
