@@ -250,45 +250,54 @@ function clickNewCase(piece) {
   return clickNewCasehandler;
 }
 
-function rotatePiece(player, piece) {
+function rotatePiece(piece) {
   const handler = function (event) {
     event.preventDefault();
 
-    player.pieces.forEach((p) => {
-      if (
-        p.id === piece.id &&
-        p.isSelected &&
-        p.isMovable &&
-        validMoove(player, piece, {
-          type: "rotation",
-          selectedCase: p.startPos,
-        })
-      ) {
-        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
-          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
-            player.grid.cases[i][j].piece = "";
-            player.grid.cases[i][j].isShip = false;
+    socket.emit("get player", socket.id, (response) => {
+      let player = response.player;
+      player.pieces.forEach((p) => {
+        if (
+          p.id === piece.id &&
+          p.isSelected &&
+          p.isMovable &&
+          validMoove(player, piece, {
+            type: "rotation",
+            selectedCase: p.startPos,
+          })
+        ) {
+          for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+            for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+              player.grid.cases[i][j].piece = "";
+              player.grid.cases[i][j].isShip = false;
+            }
           }
-        }
-        if (p.vertical) {
-          p.endPos = { x: p.startPos.x + p.size - 1, y: p.startPos.y };
-          p.vertical = false;
-        } else {
-          p.endPos = { x: p.startPos.x, y: p.startPos.y + p.size - 1 };
-          p.vertical = true;
-        }
+          if (p.vertical) {
+            p.endPos = { x: p.startPos.x + p.size - 1, y: p.startPos.y };
+            p.vertical = false;
+          } else {
+            p.endPos = { x: p.startPos.x, y: p.startPos.y + p.size - 1 };
+            p.vertical = true;
+          }
 
-        for (let i = p.startPos.x; i <= p.endPos.x; i++) {
-          for (let j = p.startPos.y; j <= p.endPos.y; j++) {
-            player.grid.cases[i][j].piece = p;
-            player.grid.cases[i][j].isShip = true;
+          for (let i = p.startPos.x; i <= p.endPos.x; i++) {
+            for (let j = p.startPos.y; j <= p.endPos.y; j++) {
+              player.grid.cases[i][j].piece = p;
+              player.grid.cases[i][j].isShip = true;
+            }
           }
         }
-      }
+        socket.emit("update piece", socket.id, p);
+        socket.emit("update grid", socket.id, player.grid, (response) => {
+          if (response.status === true) {
+            drawGrid();
+          } else {
+            // TODO : error handling
+          }
+        });
+      });
     });
-    drawGrid(player);
   };
-
   return handler;
 }
 
