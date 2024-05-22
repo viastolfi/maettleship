@@ -66,9 +66,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("get ennemy", (roomId, id, callack) => {
-    const out = players.find((p) => p.id !== id)
-    //const out = rooms.find((r) => r.id === roomId)
-    //  .players.find((p) => p.id !== id);
+    const room = rooms.find((r) => r.id === roomId);
+    const out = room.players.find((p) => p.id !== id);
 
     callack({
       player: out,
@@ -99,7 +98,6 @@ io.on("connection", (socket) => {
 });
 
 const askToPlay = (game) => {
-  console.log(game.actualPlayer)
   io.to(game.actualPlayer).emit("play");
 };
 
@@ -191,7 +189,7 @@ class Room {
       });
     });
   }
-  
+
   generateRoomId() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const idLength = 5;
