@@ -55,6 +55,11 @@ socket.on("played move", (isHit, isWin) => {
   drawEnnemyGrid();
 });
 
+socket.on('opponent left', () => {
+  const modal = document.getElementById('opponentLeftModal');
+  modal.style.display = 'block';
+})
+
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
   socket.emit("play", roomId, socket.id, move);
@@ -94,5 +99,16 @@ function onJoinRoom() {
 
   return handler;
 }
+
+document.getElementById('closeModalButton').addEventListener('click', () => {
+  const modal = document.getElementById('opponentLeftModal');
+  const ennemyBoard = document.querySelector("#ennemy_board");
+
+  ennemyBoard.classList.add("hidden-element");
+  modal.style.display = 'none';
+
+  socket.emit("reset grid", roomId)
+  drawGrid()
+});
 
 setTimeout(startConnection, 100);

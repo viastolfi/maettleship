@@ -14,7 +14,8 @@ export function drawGrid() {
 
   ownCtx.strokeStyle = "black";
 
-  socket.emit("get player", socket.id, (response) => {
+  ownCtx.clearRect(0, 0, 301, 301)
+  socket.emit("get player", roomId, socket.id, (response) => {
     let player = response.player;
     player.pieces.forEach((piece) => {
       for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
@@ -70,8 +71,10 @@ export function drawGrid() {
 export function drawEnnemyGrid() {
   ennemyCtx.strokeStyle = "red";
 
+  ennemyCtx.clearRect(0, 0, 301, 301)
   socket.emit("get ennemy", roomId, socket.id, (response) => {
     let player = response.player;
+    console.log(player.grid.cases[0])
     for (let i = 0; i < player.grid.cases.length; i++) {
       for (let j = 0; j < player.grid.cases.length; j++) {
         ennemyCtx.strokeRect(
@@ -199,7 +202,7 @@ function clickNewCase(piece) {
   const clickNewCasehandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
 
-    socket.emit("get player", socket.id, (response) => {
+    socket.emit("get player", " ", socket.id, (response) => {
       let player = response.player;
       player.pieces.forEach((p) => {
         if (
@@ -255,7 +258,7 @@ function rotatePiece(piece) {
   const handler = function (event) {
     event.preventDefault();
 
-    socket.emit("get player", socket.id, (response) => {
+    socket.emit("get player", " ", socket.id, (response) => {
       let player = response.player;
       player.pieces.forEach((p) => {
         if (
@@ -306,7 +309,7 @@ function clickChoose(event) {
   event.preventDefault();
   let selectedCase = getCursorPosition(ownCanvas, event);
 
-  socket.emit("get player", socket.id, (response) => {
+  socket.emit("get player", " ", socket.id, (response) => {
     let player = response.player;
     if (player.grid.cases[selectedCase.col][selectedCase.row].isShip) {
       const rotate_button = document.querySelector("#rotate");

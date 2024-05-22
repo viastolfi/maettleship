@@ -1,21 +1,38 @@
 const { io } = require(`${__dirname}/index.js`);
 const { Player } = require(`${__dirname}/businesses/Player.js`);
-const uuid = require("uuid");
 
 let rooms = [];
 let players = [];
 
 io.on("connection", (socket) => {
   console.log("New connected : ", socket.id);
-  /* TODO : handle disconnection
-  socket.on("disconnect", (reason) => {
-    if (game.room.players.length === 2) {
-      game.endGame();
-      delete game.room;
+
+  socket.on("disconnect", () => {
+    const index = players.findIndex((p) => p.id === socket.id)
+    const roomIndex = rooms.findIndex(room => 
+      room.players.some(player => player.id === socket.id)
+    );
+
+    if (roomIndex !== -1) {
+      const room = rooms[roomIndex];
+      const opponent = room.players.find(player => player.id !== socket.id);
+      const inRoomIndex = room.players.findIndex(player => player.id === socket.id);
+
+      if (opponent) {
+        io.to(opponent.id).emit('opponent left');
+      }
+
+      room.players.splice(inRoomIndex, 1)
+
+      if (room.players.length === 0) {
+        rooms.splice(roomIndex, 1);
+      }
     }
-    console.debug(game);
-  });
-  */
+
+    players.splice(index, 1)
+
+    console.log(`Player disconnected: ${socket.id}`);
+  })
 
   socket.on("first connection", (socketId) => {
     let player = new Player(socketId);
@@ -57,8 +74,15 @@ io.on("connection", (socket) => {
     room.move(move);
   });
 
-  socket.on("get player", (id, callback) => {
-    const out = players.find((p) => p.id === id);
+  socket.on("get player", (roomId, id, callback) => {
+    let out = ""
+    const room = rooms.find((r) => r.id === roomId)
+
+    if (room === undefined) {
+      out = players.find((p) => p.id === id);
+    } else {
+      out = room.players.find((p) => p.id === id)
+    }
 
     callback({
       player: out,
@@ -69,6 +93,7 @@ io.on("connection", (socket) => {
     const room = rooms.find((r) => r.id === roomId);
     const out = room.players.find((p) => p.id !== id);
 
+    console.log(out.grid.cases[0])
     callack({
       player: out,
     });
@@ -82,6 +107,11 @@ io.on("connection", (socket) => {
       status: true,
     });
   });
+
+  socket.on("reset grid", (roomId) => {
+    const player = rooms.find((r) => r.id === roomId).players[0]
+    player.resetGrid();
+  })
 
   socket.on("update piece", (playerId, piece) => {
     const player = players.find((p) => p.id === playerId);
@@ -149,7 +179,7 @@ class Room {
     let playedCase = this.players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row];
 
     if (playedCase.isPlayed === false) {
-      players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row].isPlayed = true;
+      this.players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row].isPlayed = true;
       playedMoove(this, playedCase.isShip, this.checkWin());
 
       let tmp = this.actualPlayer;
