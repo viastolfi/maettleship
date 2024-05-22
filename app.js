@@ -1,9 +1,8 @@
 const { io } = require(`${__dirname}/index.js`);
 const { Player } = require(`${__dirname}/businesses/Player.js`);
-const { Room } = require(`${__dirname}/businesses/Room.js`);
+const uuid = require("uuid");
 
-let room;
-let game;
+let rooms = [];
 let players = [];
 
 io.on("connection", (socket) => {
@@ -18,12 +17,9 @@ io.on("connection", (socket) => {
   });
   */
 
-  socket.on("first connection", (socketId, callback) => {
+  socket.on("first connection", (socketId) => {
     let player = new Player(socketId);
     players.push(player);
-    callback({
-      player: player,
-    });
   });
 
   socket.on("Hello", (callback) => {
@@ -32,109 +28,106 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("room creation", (player) => {
-    room = new Room();
-    room.addPlayer(player);
-  });
+  socket.on("room creation", (id, callback) => {
+    let room = new Room();
+    room.addPlayer(players.find((p) => p.id === id));
+    rooms.push(room);
 
-  socket.on("ask for room", (player) => {
-    room.addPlayer(player);
-    game = new Game(room);
-    game.validBoards();
-    game.room.players.forEach((player) => {
-      io.to(player.socketId).emit("start game");
+    callback({
+      roomId: room.id,
     });
-    game.start();
   });
 
-  socket.on("play", (id, move) => {
-    game.modifyEnnemyGrid(id, move);
-    game.move(move);
+  socket.on("ask for room", (roomId, id) => {
+    let room = rooms.find((r) => r.id === roomId);
+
+    room.addPlayer(players.find((p) => p.id === id));
+    room.validBoards();
+
+    room.players.forEach((player) => {
+      io.to(player.id).emit("start game");
+    });
+
+    room.start();
+  });
+
+  socket.on("play", (roomId, id, move) => {
+    let room = rooms.find((r) => r.id === roomId);
+
+    room.move(move);
   });
 
   socket.on("get player", (id, callback) => {
-    let out = "";
-    players.forEach((p) => {
-      if (p.socketId === id) {
-        out = p;
-      }
-    });
+    const out = players.find((p) => p.id === id);
+
     callback({
       player: out,
     });
   });
 
-  socket.on("get ennemy", (id, callack) => {
-    let out = "";
-    players.forEach((p) => {
-      if (p.socketId !== id) {
-        out = p;
-      }
-    });
+  socket.on("get ennemy", (roomId, id, callack) => {
+    const out = players.find((p) => p.id !== id)
+    //const out = rooms.find((r) => r.id === roomId)
+    //  .players.find((p) => p.id !== id);
+
     callack({
       player: out,
     });
   });
 
   socket.on("update grid", (id, grid, callback) => {
-    players.forEach((p) => {
-      if (p.socketId === id) {
-        p.grid = grid;
-      }
-    });
+    const player = players.find((p) => p.id === id);
+    player.grid = grid;
+
     callback({
       status: true,
     });
   });
 
   socket.on("update piece", (playerId, piece) => {
-    players.forEach((p) => {
-      if (p.socketId === playerId) {
-        for (let i = 0; i < p.pieces.length; i++) {
-          if (p.pieces[i].id === piece.id) {
-            p.pieces[i] = piece;
-          }
-        }
-      }
-    });
+    const player = players.find((p) => p.id === playerId);
+    const index = player.pieces.findIndex((p) => p.id === piece.id);
+
+    player.pieces[index] = piece;
   });
 
   socket.on("change selection status", (playerId, pieceId, status) => {
-    players.forEach((p) => {
-      if (p.id === playerId) {
-        p.pieces.forEach((piece) => {
-          if (piece.id === pieceId) {
-            piece.isSelected = status;
-          }
-        });
-      }
-    });
+    players
+      .find((p) => p.id === playerId)
+      .pieces.find((piece) => piece.id === pieceId).isSelected = status;
   });
 });
 
 const askToPlay = (game) => {
-  io.to(game.actualPlayer.socketId).emit("play");
+  console.log(game.actualPlayer)
+  io.to(game.actualPlayer).emit("play");
 };
 
 const playedMoove = (game, isHit, isWin) => {
-  game.room.players.forEach((player) => {
-    io.to(player.socketId).emit("played move", isHit, isWin);
+  game.players.forEach((player) => {
+    io.to(player.id).emit("played move", isHit, isWin);
   });
 };
 
-class Game {
+class Room {
   constructor(room) {
+    this.id = this.generateRoomId(); // change the id with something prettier
+    this.players = [];
     this.room = room;
     this.actualPlayer = "";
     this.ennemy = "";
   }
 
+  addPlayer(player) {
+    this.players.push(player);
+  }
+
   start() {
     let rand = Math.floor(Math.random() * (1 - 0 + 1) + 0);
-    this.actualPlayer = this.room.players[rand];
+    this.actualPlayer = this.players[rand].id;
     rand === 0
-      ? (this.ennemy = this.room.players[1])
-      : (this.ennemy = this.room.players[0]);
+      ? (this.ennemy = this.players[1].id)
+      : (this.ennemy = this.players[0].id);
 
     players.forEach((p) => {
       for (let i = 0; i < p.pieces.length; i++) {
@@ -154,44 +147,41 @@ class Game {
   }
   */
 
-  modifyEnnemyGrid(id, move) {
-    players.forEach((p) => {
-      if (p.socketId !== id) {
-        p.grid.cases[move.col][move.row].isPlayed = true;
-      }
-    });
-  }
-
   move(move) {
-    let playedCase = this.ennemy.grid.cases[move.col][move.row];
+    let playedCase = this.players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row];
+
     if (playedCase.isPlayed === false) {
-      playedCase.isPlayed = true;
-      let isHit = playedCase.isShip;
-      let isWin = this.checkWin();
-      playedMoove(this, isHit, isWin);
-      let temp = this.actualPlayer;
+      players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row].isPlayed = true;
+      playedMoove(this, playedCase.isShip, this.checkWin());
+
+      let tmp = this.actualPlayer;
       this.actualPlayer = this.ennemy;
-      this.ennemy = temp;
+      this.ennemy = tmp;
     }
+
     askToPlay(this);
   }
 
   checkWin() {
+    const e = this.players.find((p) => p.id === this.ennemy);
     let w = true;
-    for (let i = 0; i < this.ennemy.grid.cases.length; i++) {
-      for (let j = 0; j < this.ennemy.grid.cases.length; j++) {
-        let c = this.ennemy.grid.cases[i][j];
+
+    for (let i = 0; i < e.grid.cases.length; i++) {
+      for (let j = 0; j < e.grid.cases.length; j++) {
+        let c = e.grid.cases[i][j];
+
         if (c.isShip && !c.isPlayed) {
           w = false;
           break;
         }
       }
     }
+
     return w;
   }
 
   validBoards() {
-    this.room.players.forEach((player) => {
+    this.players.forEach((player) => {
       player.pieces.forEach((piece) => {
         for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
           for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
@@ -200,5 +190,18 @@ class Game {
         }
       });
     });
+  }
+  
+  generateRoomId() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const idLength = 5;
+    let roomId = '';
+  
+    for (let i = 0; i < idLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      roomId += characters[randomIndex];
+    }
+  
+    return roomId;
   }
 }

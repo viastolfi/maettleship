@@ -1,4 +1,4 @@
-import { sendMove, socket } from "./index.js";
+import { sendMove, socket, roomId } from "./index.js";
 
 const ownCanvas = document.getElementById("own_board");
 const ownCtx = ownCanvas.getContext("2d");
@@ -70,7 +70,7 @@ export function drawGrid() {
 export function drawEnnemyGrid() {
   ennemyCtx.strokeStyle = "red";
 
-  socket.emit("get ennemy", socket.id, (response) => {
+  socket.emit("get ennemy", roomId, socket.id, (response) => {
     let player = response.player;
     for (let i = 0; i < player.grid.cases.length; i++) {
       for (let j = 0; j < player.grid.cases.length; j++) {
@@ -198,6 +198,7 @@ function validMoove(player, piece, movement) {
 function clickNewCase(piece) {
   const clickNewCasehandler = function (event) {
     let selectedCase = getCursorPosition(ownCanvas, event);
+
     socket.emit("get player", socket.id, (response) => {
       let player = response.player;
       player.pieces.forEach((p) => {
@@ -316,11 +317,11 @@ function clickChoose(event) {
         let oldPieceId = selectedPiece.id;
         player.pieces.forEach((p) => {
           if (p.id === oldPieceId) {
-            socket.emit("change selection status", player.id, p.id, false);
+            socket.emit("change selection status", socket.id, p.id, false);
           }
           if (p.id === piece.id) {
             selectedPiece = p;
-            socket.emit("change selection status", player.id, p.id, true);
+            socket.emit("change selection status", socket.id, p.id, true);
           }
         });
       }

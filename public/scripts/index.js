@@ -1,19 +1,20 @@
 import { drawGrid, drawEnnemyGrid, play, selectPiece } from "./game.js";
 
 export const socket = io();
+export let roomId = "";
 
 function startConnection() {
-  socket.emit("first connection", socket.id, (response) => {
-    drawGrid();
-    selectPiece();
+  socket.emit("first connection", socket.id)
 
-    document
-      .querySelector("#start")
-      .addEventListener("click", onCreateRoom(response.player));
-    document
-      .querySelector("#join")
-      .addEventListener("click", onJoinRoom(response.player));
-  });
+  drawGrid();
+  selectPiece();
+
+  document
+    .querySelector("#start")
+    .addEventListener("click", onCreateRoom());
+  document
+    .querySelector("#join")
+    .addEventListener("click", onJoinRoom());
 }
 
 socket.on("start game", () => {
@@ -56,29 +57,39 @@ socket.on("played move", (isHit, isWin) => {
 
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
-  socket.emit("play", socket.id, move);
+  socket.emit("play", roomId, socket.id, move);
   notification.classList.add("hidden-element");
 }
 
-function onCreateRoom(player) {
+function onCreateRoom() {
   const handler = function (event) {
     event.preventDefault();
     const loader = document.querySelector("#loader");
+    const roomkeyHolder = document.querySelector("#roomkeyHolder");
     loader.classList.add("hidden-element");
 
-    socket.emit("room creation", player);
+    socket.emit("room creation", socket.id, (response) => {
+      roomId = response.roomId;
+      roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
+    });
   };
 
   return handler;
 }
 
-function onJoinRoom(player) {
+function onJoinRoom() {
   const handler = function (event) {
     event.preventDefault();
+
     const loader = document.querySelector("#loader");
+    const roomKey = document.querySelector("#roomKey").value;
+    const roomkeyHolder = document.querySelector("#roomkeyHolder");
+
     loader.classList.add("hidden-element");
 
-    socket.emit("ask for room", player);
+    roomId = roomKey;
+    roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
+    socket.emit("ask for room", roomKey, socket.id);
   };
 
   return handler;

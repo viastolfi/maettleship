@@ -4,8 +4,7 @@ const { Piece } = require("./Piece.js");
 
 class Player {
   constructor(socketId) {
-    this.id = uuid.v4();
-    this.socketId = socketId;
+    this.id = socketId;
     this.grid = new Grid();
     this.pieces = [];
     this.pieces.push(new Piece(1, { x: 0, y: 0 }, { x: 0, y: 0 }));
