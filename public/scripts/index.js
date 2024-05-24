@@ -48,6 +48,8 @@ socket.on("played move", (isHit, isWin) => {
   if (isHit) hitNotification.classList.remove("hidden-element");
   else hitNotification.classList.add("hidden-element");
 
+  if (isWin) gameEnd()
+
   if (isWin) winNotification.classList.remove("hidden-element");
   else winNotification.classList.add("hidden-element");
 
@@ -59,6 +61,11 @@ socket.on('opponent left', () => {
   const modal = document.getElementById('opponentLeftModal');
   modal.style.display = 'block';
 })
+
+function gameEnd() {
+  const modal = document.getElementById('gameEndedModal');
+  modal.style.display = 'block';
+}
 
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
@@ -99,6 +106,17 @@ function onJoinRoom() {
 
   return handler;
 }
+
+document.getElementById('closeModalButton').addEventListener('click', () => {
+  const modal = document.getElementById('opponentLeftModal');
+  const ennemyBoard = document.querySelector("#ennemy_board");
+
+  ennemyBoard.classList.add("hidden-element");
+  modal.style.display = 'none';
+
+  socket.emit("reset grid", roomId)
+  drawGrid()
+});
 
 document.getElementById('closeModalButton').addEventListener('click', () => {
   const modal = document.getElementById('opponentLeftModal');
