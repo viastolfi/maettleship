@@ -5,7 +5,7 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 const port = 8080;
-const url = "https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship"
+const url = "https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship:8080"
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
