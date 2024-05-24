@@ -1,6 +1,6 @@
 import { drawGrid, drawEnnemyGrid, play, selectPiece } from "./game.js";
 
-export const socket = io("https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship:8081", {
+export const socket = io("https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship", {
   withCredentials: true,
 });
 export let roomId = "";
