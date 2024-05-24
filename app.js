@@ -93,7 +93,6 @@ io.on("connection", (socket) => {
     const room = rooms.find((r) => r.id === roomId);
     const out = room.players.find((p) => p.id !== id);
 
-    console.log(out.grid.cases[0])
     callack({
       player: out,
     });
