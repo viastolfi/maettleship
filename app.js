@@ -1,13 +1,9 @@
-const { io } = require(`${__dirname}/index.js`);
 const { Player } = require(`${__dirname}/businesses/Player.js`);
 
 let rooms = [];
 let players = [];
 
-console.log("test")
-
 module.exports = function(io) {
-
   io.on("connection", (socket) => {
     console.log("New connected : ", socket.id);
   
