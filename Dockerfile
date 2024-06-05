@@ -1,7 +1,7 @@
-FROM node:latest
+FROM node:16
 WORKDIR /usr/src/app
-COPY ./ ./
-RUN sed -i '1i\<base href="https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship/">' ./public/index.html
+COPY package*.json ./
 RUN npm install
+COPY . .
 EXPOSE 8081
-CMD [ "node", "index.js" ]
+CMD ["node", "index.js"]

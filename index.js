@@ -6,6 +6,8 @@ const port = 8081;
 
 app.use(express.static("public"));
 
+require('./app')(io);
+
 http.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
 });
