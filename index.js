@@ -29,7 +29,7 @@ app.post('/register', (req, res) => {
   }
   
   const query = 'INSERT INTO users (pseudo, password) VALUES (?, ?)';
-  db.execute(query, [pseudo, password], (err, results) => {
+  db.query(query, [pseudo, password], (err, results) => {
     if (err) {
       console.error('Error inserting user into the database:', err);
       return res.status(500).send('Internal server error.');
