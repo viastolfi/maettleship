@@ -3,10 +3,41 @@ const app = express();
 const http = require("http").Server(app);
 const io = require("socket.io")(http);
 const port = 8080;
+const db = require("./database.js")
 
-app.use(express.static("public"));
+const bodyParser = require("body-parser");
+const path = require("path");
+
+app.use(express.static("public"))
+app.use(express.json());
 
 const { Player } = require(`${__dirname}/businesses/Player.js`);
+
+app.get('/',  (req, res) => {
+  res.sendFile(path.join(__dirname, '/public/index.html'))
+})
+
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+})
+
+app.post('/register', (req, res) => {
+  const { pseudo, password } = req.body;
+
+  if (!pseudo || !password) {
+    return res.status(400).send('Email and password are required.');
+  }
+  
+  const query = 'INSERT INTO users (pseudo, password) VALUES (?, ?)';
+  db.execute(query, [pseudo, password], (err, results) => {
+    if (err) {
+      console.error('Error inserting user into the database:', err);
+      return res.status(500).send('Internal server error.');
+    }
+
+    res.status(201).send('User registered successfully.');
+  })
+});
 
 let rooms = [];
 let players = [];
@@ -239,7 +270,6 @@ class Room {
     return roomId;
   }
 }
-
 
 http.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
