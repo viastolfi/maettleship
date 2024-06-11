@@ -14,11 +14,12 @@ app.use(express.json());
 const { Player } = require(`${__dirname}/businesses/Player.js`);
 
 app.get('/',  (req, res) => {
-  res.sendFile(path.join(__dirname, '/public/index.html'))
+  res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
 })
 
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+app.get('/game', (req, res) => {
+  console.log('get game')
+  res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
 app.post('/register', (req, res) => {
@@ -35,7 +36,7 @@ app.post('/register', (req, res) => {
       return res.status(500).send('Internal server error.');
     }
 
-    res.status(201).send('User registered successfully.');
+    res.status(201).send({message: 'User registered successfully.', redirectUrl: '/game' });
   })
 });
 

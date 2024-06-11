@@ -16,12 +16,14 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             body: JSON.stringify({ pseudo, password }),
         });
 
+        const result = await response.json();
+
         if (response.ok) {
             messageDiv.textContent = 'User registered successfully!';
             messageDiv.style.color = 'green';
+            window.location.href = result.redirectUrl;
         } else {
-            const errorText = await response.text();
-            messageDiv.textContent = `Error: ${errorText}`;
+            messageDiv.textContent = `Error: ${result.message || 'Unknown error'}`;
             messageDiv.style.color = 'red';
         }
     } catch (error) {
