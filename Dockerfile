@@ -5,4 +5,4 @@ RUN npm install
 COPY . .
 #RUN sed -i '1i\<base href="https://codefirst.iut.uca.fr/containers/vincentastolfi-maettleship/">' ./public/index.html 
 EXPOSE 8080
-CMD ["node", "index.js"]
+CMD ["npm", "run", "start"]
