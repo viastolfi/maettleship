@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --env-file=.env index.js",
-    "start": "node index.js"
+    "start": "node --env-file=.env index.js"
   },
   "author": "Vincent Astolfi",
   "license": "ISC",
