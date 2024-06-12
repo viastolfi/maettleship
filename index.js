@@ -39,6 +39,31 @@ app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
+app.post('/logIn', (req, res) => {
+  const { pseudo, password } = req.body;
+
+  if (!pseudo || !password) {
+    return res.status(400).send('Email and password are required.');
+  }
+
+  const query = 'SELECT * FROM users WHERE pseudo = ? AND password = ?';
+  db.query(query, [pseudo, password], (err, results) => {
+    if (err) {
+      console.error('Error inserting user into the database:', err);
+      return res.status(500).send({message: 'Internal server error.'});
+    }
+
+    if (results.length === 1) {
+      const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
+      res.cookie('authToken', token, { httpOnly: true, secure: false });
+
+      res.status(201).send({message: 'User logged in successfully.', redirectUrl: '/game' });
+    } else {
+      res.status(401).send({message: "Username or password is incorrect"})
+    }
+  })
+})
+
 app.post('/register', (req, res) => {
   const { pseudo, password } = req.body;
 
