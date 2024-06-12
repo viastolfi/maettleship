@@ -42,6 +42,7 @@ socket.on("play", () => {
 });
 
 socket.on("played move", (isHit, isWin) => {
+  console.log("test")
   const hitNotification = document.querySelector("#hit_notification");
   const winNotification = document.querySelector("#win_notification");
 

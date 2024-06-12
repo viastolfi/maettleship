@@ -1,4 +1,4 @@
-import { sendMove, socket, roomId } from "./index.js";
+import { sendMove, socket, roomId } from "./app.js";
 
 const ownCanvas = document.getElementById("own_board");
 const ownCtx = ownCanvas.getContext("2d");
