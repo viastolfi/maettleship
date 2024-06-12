@@ -20,14 +20,20 @@ app.use(cookieParser());
 const secretKey = process.env.COOKIE_SECRET_KEY;
 
 app.get('/',  (req, res) => {
-  res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+  const token = req.cookies.authToken;
+
+  if(token) {
+    res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+  } else {
+    res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+  }
 })
 
 app.get('/game', (req, res) => {
   const token = req.cookies.authToken;
 
   if (!token) {
-    return res.status(401).send('Access denied. No token provided.');
+    res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
   }
 
   res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
@@ -39,6 +45,17 @@ app.post('/register', (req, res) => {
   if (!pseudo || !password) {
     return res.status(400).send('Email and password are required.');
   }
+
+  const getPseudoQuery = 'SELECT pseudo FROM users WHERE pseudo = ?'
+  db.query(getPseudoQuery, [pseudo], (err, results) => {
+    if (err) {
+      console.error('Error retrieving user info from the database:', err);
+      return res.status(500).send('Internal server error.');
+    }
+    if (results.length !== 0) {
+      return res.status(403).send({message:'User already exist. Try another username'});
+    }
+  });
   
   const query = 'INSERT INTO users (pseudo, password) VALUES (?, ?)';
   db.query(query, [pseudo, password], (err, results) => {
@@ -65,7 +82,6 @@ app.get('/user-info', (req, res) => {
     const decoded = jwt.verify(token, secretKey);
     const query = 'SELECT pseudo FROM users WHERE pseudo = ?';
     db.query(query, [decoded.pseudo], (err, results) => {
-      console.log(results)
       if (err) {
         console.error('Error retrieving user info from the database:', err);
         return res.status(500).send('Internal server error.');

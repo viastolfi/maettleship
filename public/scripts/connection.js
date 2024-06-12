@@ -5,8 +5,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const password = document.getElementById('password').value;
     const messageDiv = document.getElementById('message');
 
-    console.log("test")
-
     try {
         const response = await fetch('/register', {
             method: 'POST',
@@ -17,7 +15,9 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
 
         const result = await response.json();
-
+        console.log("test")
+        console.log(result)
+        
         if (response.ok) {
             messageDiv.textContent = 'User registered successfully!';
             messageDiv.style.color = 'green';
@@ -27,6 +27,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             messageDiv.style.color = 'red';
         }
     } catch (error) {
+        console.log("testE")
         messageDiv.textContent = `Error: ${error.message}`;
         messageDiv.style.color = 'red';
     }
