@@ -4,22 +4,32 @@ const http = require("http").Server(app);
 const io = require("socket.io")(http);
 const port = 8080;
 const db = require("./database.js")
-
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const path = require("path");
 
 const { Room } = require('./businesses/Room.js');
+const { Player } = require(`${__dirname}/businesses/Player.js`);
 
 app.use(express.static("public"))
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-const { Player } = require(`${__dirname}/businesses/Player.js`);
+const secretKey = process.env.COOKIE_SECRET_KEY;
 
 app.get('/',  (req, res) => {
   res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
 })
 
 app.get('/game', (req, res) => {
+  const token = req.cookies.authToken;
+
+  if (!token) {
+    return res.status(401).send('Access denied. No token provided.');
+  }
+
   res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
@@ -37,8 +47,37 @@ app.post('/register', (req, res) => {
       return res.status(500).send('Internal server error.');
     }
 
+    const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
+    res.cookie('authToken', token, { httpOnly: true, secure: false });
+
     res.status(201).send({message: 'User registered successfully.', redirectUrl: '/game' });
   })
+});
+
+app.get('/user-info', (req, res) => {
+  const token = req.cookies.authToken;
+
+  if (!token) {
+    return res.status(401).send('Access denied. No token provided.');
+  }
+
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const query = 'SELECT pseudo FROM users WHERE pseudo = ?';
+    db.query(query, [decoded.pseudo], (err, results) => {
+      console.log(results)
+      if (err) {
+        console.error('Error retrieving user info from the database:', err);
+        return res.status(500).send('Internal server error.');
+      }
+      if (results.length === 0) {
+        return res.status(404).send('User not found.');
+      }
+      res.json(results[0]);
+    });
+  } catch (ex) {
+    res.status(400).send('Invalid token.');
+  }
 });
 
 let rooms = [];
