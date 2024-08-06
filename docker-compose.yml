@@ -13,6 +13,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=password
       - DB_NAME=battleship
+      - COOKIE_SECRET_KEY=dhdgdnjejf
     depends_on:
       - db
   
@@ -21,10 +22,8 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: battleship
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
+      - ./db:/docker-entrypoint-initdb.d
