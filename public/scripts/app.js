@@ -17,10 +17,11 @@ function startConnection() {
     .addEventListener("click", onJoinRoom());
 }
 
-socket.on("start game", () => {
+socket.on("start game", (username) => {
   const ennemyBoard = document.querySelector("#ennemy_board");
 
   ennemyBoard.classList.remove("hidden-element");
+  console.log(username)
 
   drawGrid();
   drawEnnemyGrid();

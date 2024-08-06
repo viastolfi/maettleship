@@ -52,7 +52,6 @@ app.post('/logIn', (req, res) => {
       console.error('Error inserting user into the database:', err);
       return res.status(500).send({message: 'Internal server error.'});
     }
-
     if (results.length === 1) {
       const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
       res.cookie('authToken', token, { httpOnly: true, secure: false });
@@ -155,8 +154,21 @@ io.on("connection", (socket) => {
   })
 
   socket.on("first connection", (socketId) => {
-    let player = new Player(socketId);
-    players.push(player);
+    const cookies = socket.request.headers.cookie;
+    const authToken = cookies.split('; ').find(cookie => cookie.startsWith('authToken=')).split('=')[1];
+
+    if (authToken) {
+      try {
+        const decoded = jwt.verify(authToken, secretKey);
+        const username = decoded.pseudo;
+        let player = new Player(socketId, username);
+        players.push(player);
+      } catch (ex) {
+        console.error('Invalid token:', ex);
+      }
+    } else {
+      console.log('No auth token found in cookies.');
+      }
   });
 
   socket.on("Hello", (callback) => {
@@ -181,9 +193,15 @@ io.on("connection", (socket) => {
     room.addPlayer(players.find((p) => p.id === id));
     room.validBoards();
 
+    for (let i = 0; i < room.players.length; i++) {
+      io.to(room.players[i].id).emit("start game", room.players[i === 0 ? 1 : 0].username)
+    }
+
+    /*
     room.players.forEach((player) => {
       io.to(player.id).emit("start game");
     });
+    */
 
     askToPlay(room.start());
   });

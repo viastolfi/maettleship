@@ -3,8 +3,9 @@ const { Grid } = require("./Grid.js");
 const { Piece } = require("./Piece.js");
 
 class Player {
-  constructor(socketId) {
+  constructor(socketId, username) {
     this.id = socketId;
+    this.username = username
     this.grid = new Grid();
     this.pieces = [];
     this.pieces.push(new Piece(1, { x: 0, y: 0 }, { x: 0, y: 0 }));
