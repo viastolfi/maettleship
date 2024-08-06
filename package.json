@@ -4,6 +4,7 @@
   "description": "Simple online battleship game that I design for mae when lectures are boring",
   "main": "index.js",
   "scripts": {
+    "prod": "node index.js",
     "dev": "nodemon --env-file=.env index.js",
     "start": "node --env-file=.env index.js"
   },
