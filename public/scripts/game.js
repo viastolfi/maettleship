@@ -10,11 +10,7 @@ const CASE_SIZE = 30;
 let selectedPiece = "";
 
 export function drawGrid() {
-  ownCtx.clearRect(0, 0, ownCanvas.height, ownCanvas.width);
-
   ownCtx.strokeStyle = "black";
-
-  ownCtx.clearRect(0, 0, 301, 301)
   socket.emit("get player", roomId, socket.id, (response) => {
     let player = response.player;
     player.pieces.forEach((piece) => {
@@ -43,6 +39,16 @@ export function drawGrid() {
 
     for (let i = 0; i < player.grid.cases.length; i++) {
       for (let j = 0; j < player.grid.cases.length; j++) {
+        if (!player.grid.cases[i][j].isShip) {
+          ownCtx.fillStyle = "white"
+          ownCtx.fillRect(
+            i * CASE_SIZE,
+            j * CASE_SIZE,
+            CASE_SIZE,
+            CASE_SIZE
+          )
+        }
+
         ownCtx.strokeRect(
           i * CASE_SIZE + 1,
           j * CASE_SIZE + 1,
@@ -71,12 +77,20 @@ export function drawGrid() {
 export function drawEnnemyGrid() {
   ennemyCtx.strokeStyle = "red";
 
-  ennemyCtx.clearRect(0, 0, 301, 301)
   socket.emit("get ennemy", roomId, socket.id, (response) => {
     let player = response.player;
-    console.log(player.grid.cases[0])
     for (let i = 0; i < player.grid.cases.length; i++) {
       for (let j = 0; j < player.grid.cases.length; j++) {
+        if (!player.grid.cases[i][j].isPlayed) {
+          ennemyCtx.fillStyle = "white"
+          ennemyCtx.fillRect(
+            i * CASE_SIZE,
+            j * CASE_SIZE,
+            CASE_SIZE,
+            CASE_SIZE
+          )
+        }
+
         ennemyCtx.strokeRect(
           i * CASE_SIZE + 1,
           j * CASE_SIZE + 1,
@@ -310,6 +324,7 @@ function clickChoose(event) {
   let selectedCase = getCursorPosition(ownCanvas, event);
 
   socket.emit("get player", " ", socket.id, (response) => {
+    // Sometimes i get an error there
     let player = response.player;
     if (player.grid.cases[selectedCase.col][selectedCase.row].isShip) {
       const rotate_button = document.querySelector("#rotate");

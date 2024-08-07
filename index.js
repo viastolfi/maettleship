@@ -34,16 +34,16 @@ app.get('/game', (req, res) => {
 
   if (!token) {
     res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+  } else {
+    res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
   }
-
-  res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
 app.post('/logIn', (req, res) => {
   const { pseudo, password } = req.body;
 
   if (!pseudo || !password) {
-    return res.status(400).send('Email and password are required.');
+    return res.status(400).send('pseudo and password are required.');
   }
 
   const query = 'SELECT * FROM users WHERE pseudo = ? AND password = ?';
@@ -227,7 +227,7 @@ io.on("connection", (socket) => {
     let out = ""
     const room = rooms.find((r) => r.id === roomId)
 
-    if (room === undefined) {
+    if (room == null) {
       out = players.find((p) => p.id === id);
     } else {
       out = room.players.find((p) => p.id === id)
