@@ -187,8 +187,19 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("ask for room", (roomId, id) => {
+  socket.on("ask for room", (roomId, id, callack) => {
     let room = rooms.find((r) => r.id === roomId);
+
+    if (room == null) {
+      callack({
+        status: false
+      })
+      return 
+    }
+
+    callack({
+      status: true
+    })
 
     room.addPlayer(players.find((p) => p.id === id));
     room.validBoards();

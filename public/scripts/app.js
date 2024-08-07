@@ -43,7 +43,6 @@ socket.on("play", () => {
 });
 
 socket.on("played move", (isHit, isWin) => {
-  console.log("test")
   const hitNotification = document.querySelector("#hit_notification");
   const winNotification = document.querySelector("#win_notification");
 
@@ -98,12 +97,20 @@ function onJoinRoom() {
     const loader = document.querySelector("#loader");
     const roomKey = document.querySelector("#roomKey").value;
     const roomkeyHolder = document.querySelector("#roomkeyHolder");
-
-    loader.classList.add("hidden-element");
+    const errorHolder = document.querySelector("#errorHandler")
 
     roomId = roomKey;
-    roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
-    socket.emit("ask for room", roomKey, socket.id);
+    
+    socket.emit("ask for room", roomKey, socket.id, (response) => {
+      if (response.status !== true) {
+        if (errorHolder.textContent == "") {
+          errorHolder.append("Error : Room Id don't exist")
+        }
+      } else {
+        loader.classList.add("hidden-element");
+        roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
+      }
+    });
   };
 
   return handler;

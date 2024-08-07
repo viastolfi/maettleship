@@ -43,12 +43,12 @@ class Room {
         if (playedCase.isPlayed === false) {
             this.players.find((p) => p.id === this.ennemy).grid.cases[move.col][move.row].isPlayed = true;
 
+            ret = {isMove: true, players: this.players, isHit: playedCase.isShip, 
+                isWin: this.checkWin(), player: this.actualPlayer}
+
             let tmp = this.actualPlayer;
             this.actualPlayer = this.ennemy;
             this.ennemy = tmp;
-
-            ret = {isMove: true, players: this.players, isHit: playedCase.isShip, 
-                isWin: this.checkWin(), player: this.actualPlayer}
         }
         
         return ret
