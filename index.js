@@ -136,7 +136,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const index = players.findIndex((p) => p.id === socket.id)
-    // if there is no room this line creates error
     const roomIndex = rooms.findIndex(room => 
       room.players.some((player) => player.id === socket.id)
     );
@@ -157,13 +156,14 @@ io.on("connection", (socket) => {
       }
     }
 
-    players.splice(index, 1)
+    if (index !== -1) {
+      players.splice(index, 1)
+    }
 
     console.log(`Player disconnected: ${socket.id}`);
   })
 
   socket.on("first connection", (socketId) => {
-    // error my occurs if cookie is expired
     const cookies = socket.request.headers.cookie;
     const authToken = cookies.split('; ').find(cookie => cookie.startsWith('authToken=')).split('=')[1];
 
@@ -267,19 +267,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("game ended", (roomId) => {
-    const room = rooms.find((r) => r.id === roomId)
     const roomIndex = rooms.findIndex((r) => r.id === roomId)
 
-    room.players.forEach(player => {
+    rooms[roomIndex].players.forEach(player => {
       player.resetGrid()
       io.to(player.id).emit("go to menu")
     });
 
-    room.players = []
-    rooms.slice(roomIndex, 1)
-    delete room
-
-    console.log("rooms list : ", rooms)
+    rooms.splice(roomIndex, 1)
   })
 
   socket.on("reset grid", (roomId) => {
@@ -318,5 +313,5 @@ const sendMoveToPlayers = (moveData) => {
 
 
 http.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
+  //console.log(`Listening on http://localhost:${port}`);
 });
