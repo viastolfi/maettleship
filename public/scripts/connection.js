@@ -15,8 +15,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
 
         const result = await response.json();
-        console.log("test")
-        console.log(result)
         
         if (response.ok) {
             messageDiv.textContent = 'User registered successfully!';
@@ -27,7 +25,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             messageDiv.style.color = 'red';
         }
     } catch (error) {
-        console.log("testE")
         messageDiv.textContent = `Error: ${error.message}`;
         messageDiv.style.color = 'red';
     }
@@ -60,7 +57,6 @@ document.getElementById('logInForm').addEventListener('submit', async function (
             messageDiv.style.color = 'red';
         }
     } catch (error) {
-        console.log("testEL")
         messageDiv.textContent = `Error: ${error.message}`;
         messageDiv.style.color = 'red';
     }

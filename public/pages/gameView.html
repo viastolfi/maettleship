@@ -8,17 +8,20 @@
         <title>Maettleship</title>
     </head>
     <body>
-        <div id="opponentLeftModal">
-            <div id="opponentLeftModalContent">
+        <div class="modal" id="opponentLeftModal">
+            <div class="modalContent" id="opponentLeftModalContent">
                 <p>Your opponent has left the game.</p>
                 <button id="closeModalButton" class="close">Okay</button>
             </div>
         </div>
 
-        <div id="gameEndedModal">
-            <div id="gameEndedModalContent">
+        <div class="modal" id="gameEndedModal">
+            <div class="modalContent" id="gameEndendModalContent">
                 <p>We have a winner</p>
-                <button id="closeEndGameModalButton" class="close">Okay</button>
+                <div class="buttonChoice">
+                    <button id="rematchButton" class="close">Rematch</button>
+                    <button id="goToMenuButton" class="close">Menu</button>
+                </div>
             </div>
         </div>
 
@@ -33,6 +36,8 @@
             <button class="btn-primary" id="join" type="submit">
                 Join room
             </button>
+
+            <div id="errorHandler"></div>
         </div>
 
         </br>
@@ -56,9 +61,11 @@
 
         <p id="playerInfo"></p>
 
-        <h2 class="hidden-element" id="play_notification">You have to play</h2>
-        <h2 class="hidden-element" id="hit_notification">Hit !</h2>
-        <h2 class="hidden-element" id="win_notification">WIN !</h2>
+        <div id="inGameNotification">
+            <h2 class="hidden-element" id="play_notification">You have to play</h2>
+            <h2 class="hidden-element" id="hit_notification">Hit !</h2>
+            <h2 class="hidden-element" id="win_notification">WIN !</h2>
+        </div>
 
         <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
         <script type="module" src="../scripts/game.js"></script>

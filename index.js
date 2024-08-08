@@ -19,23 +19,26 @@ app.use(cookieParser());
 
 const secretKey = process.env.COOKIE_SECRET_KEY;
 
+// #region routing and cookies
+
 app.get('/',  (req, res) => {
   const token = req.cookies.authToken;
 
   if(token) {
-    res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+    try {
+      jwt.verify(token, secretKey);
+      res.status(200)
+      res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+    } catch (ex) {
+      res.status(401)
+      res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+    }
   } else {
     res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
   }
 })
 
 app.get('/game', (req, res) => {
-  const token = req.cookies.authToken;
-
-  if (!token) {
-    res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
-  }
-
   res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
@@ -43,7 +46,7 @@ app.post('/logIn', (req, res) => {
   const { pseudo, password } = req.body;
 
   if (!pseudo || !password) {
-    return res.status(400).send('Email and password are required.');
+    return res.status(400).send('pseudo and password are required.');
   }
 
   const query = 'SELECT * FROM users WHERE pseudo = ? AND password = ?';
@@ -120,6 +123,11 @@ app.get('/user-info', (req, res) => {
   }
 });
 
+// #endregion routing and cookies
+
+
+// #region socket and game
+
 let rooms = [];
 let players = [];
 
@@ -128,8 +136,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const index = players.findIndex((p) => p.id === socket.id)
+    // if there is no room this line creates error
     const roomIndex = rooms.findIndex(room => 
-      room.players.some(player => player.id === socket.id)
+      room.players.some((player) => player.id === socket.id)
     );
 
     if (roomIndex !== -1) {
@@ -154,6 +163,7 @@ io.on("connection", (socket) => {
   })
 
   socket.on("first connection", (socketId) => {
+    // error my occurs if cookie is expired
     const cookies = socket.request.headers.cookie;
     const authToken = cookies.split('; ').find(cookie => cookie.startsWith('authToken=')).split('=')[1];
 
@@ -187,8 +197,19 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("ask for room", (roomId, id) => {
+  socket.on("ask for room", (roomId, id, callack) => {
     let room = rooms.find((r) => r.id === roomId);
+
+    if (room == null) {
+      callack({
+        status: false
+      })
+      return 
+    }
+
+    callack({
+      status: true
+    })
 
     room.addPlayer(players.find((p) => p.id === id));
     room.validBoards();
@@ -216,7 +237,7 @@ io.on("connection", (socket) => {
     let out = ""
     const room = rooms.find((r) => r.id === roomId)
 
-    if (room === undefined) {
+    if (room == null) {
       out = players.find((p) => p.id === id);
     } else {
       out = room.players.find((p) => p.id === id)
@@ -244,6 +265,22 @@ io.on("connection", (socket) => {
       status: true,
     });
   });
+
+  socket.on("game ended", (roomId) => {
+    const room = rooms.find((r) => r.id === roomId)
+    const roomIndex = rooms.findIndex((r) => r.id === roomId)
+
+    room.players.forEach(player => {
+      player.resetGrid()
+      io.to(player.id).emit("go to menu")
+    });
+
+    room.players = []
+    rooms.slice(roomIndex, 1)
+    delete room
+
+    console.log("rooms list : ", rooms)
+  })
 
   socket.on("reset grid", (roomId) => {
     const player = rooms.find((r) => r.id === roomId).players[0]
@@ -276,6 +313,9 @@ const sendMoveToPlayers = (moveData) => {
   }
   askToPlay(moveData.player)
 };
+
+// #endregion socket and game
+
 
 http.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);

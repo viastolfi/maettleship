@@ -21,7 +21,6 @@ socket.on("start game", (username) => {
   const ennemyBoard = document.querySelector("#ennemy_board");
 
   ennemyBoard.classList.remove("hidden-element");
-  console.log(username)
 
   drawGrid();
   drawEnnemyGrid();
@@ -43,7 +42,6 @@ socket.on("play", () => {
 });
 
 socket.on("played move", (isHit, isWin) => {
-  console.log("test")
   const hitNotification = document.querySelector("#hit_notification");
   const winNotification = document.querySelector("#win_notification");
 
@@ -62,6 +60,24 @@ socket.on("played move", (isHit, isWin) => {
 socket.on('opponent left', () => {
   const modal = document.getElementById('opponentLeftModal');
   modal.style.display = 'block';
+})
+
+socket.on("go to menu", () => {
+  const modal = document.getElementById("gameEndedModal")
+  const ennemyGrid = document.getElementById("ennemy_board")
+  const loader = document.getElementById("loader")
+  const roomkeyHolder = document.getElementById("roomkeyHolder")
+  const notifications = document.getElementById("inGameNotification")
+
+  roomId = ""
+
+  notifications.style.display = 'none'
+  modal.style.display = 'none'
+  ennemyGrid.style.display = 'none'
+  loader.classList.remove = "hidden-element"
+  roomkeyHolder.style.display = 'none'
+
+  drawGrid()
 })
 
 function gameEnd() {
@@ -98,12 +114,20 @@ function onJoinRoom() {
     const loader = document.querySelector("#loader");
     const roomKey = document.querySelector("#roomKey").value;
     const roomkeyHolder = document.querySelector("#roomkeyHolder");
-
-    loader.classList.add("hidden-element");
+    const errorHolder = document.querySelector("#errorHandler")
 
     roomId = roomKey;
-    roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
-    socket.emit("ask for room", roomKey, socket.id);
+    
+    socket.emit("ask for room", roomKey, socket.id, (response) => {
+      if (response.status !== true) {
+        if (errorHolder.textContent == "") {
+          errorHolder.append("Error : Room Id don't exist")
+        }
+      } else {
+        loader.classList.add("hidden-element");
+        roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
+      }
+    });
   };
 
   return handler;
@@ -120,15 +144,8 @@ document.getElementById('closeModalButton').addEventListener('click', () => {
   drawGrid()
 });
 
-document.getElementById('closeModalButton').addEventListener('click', () => {
-  const modal = document.getElementById('opponentLeftModal');
-  const ennemyBoard = document.querySelector("#ennemy_board");
-
-  ennemyBoard.classList.add("hidden-element");
-  modal.style.display = 'none';
-
-  socket.emit("reset grid", roomId)
-  drawGrid()
-});
+document.getElementById('goToMenuButton').addEventListener('click', () => {
+  socket.emit("game ended", roomId);
+})
 
 setTimeout(startConnection, 100);
