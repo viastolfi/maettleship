@@ -62,6 +62,24 @@ socket.on('opponent left', () => {
   modal.style.display = 'block';
 })
 
+socket.on("go to menu", () => {
+  const modal = document.getElementById("gameEndedModal")
+  const ennemyGrid = document.getElementById("ennemy_board")
+  const loader = document.getElementById("loader")
+  const roomkeyHolder = document.getElementById("roomkeyHolder")
+  const notifications = document.getElementById("inGameNotification")
+
+  roomId = ""
+
+  notifications.style.display = 'none'
+  modal.style.display = 'none'
+  ennemyGrid.style.display = 'none'
+  loader.classList.remove = "hidden-element"
+  roomkeyHolder.style.display = 'none'
+
+  drawGrid()
+})
+
 function gameEnd() {
   const modal = document.getElementById('gameEndedModal');
   modal.style.display = 'block';
@@ -126,15 +144,8 @@ document.getElementById('closeModalButton').addEventListener('click', () => {
   drawGrid()
 });
 
-document.getElementById('closeModalButton').addEventListener('click', () => {
-  const modal = document.getElementById('opponentLeftModal');
-  const ennemyBoard = document.querySelector("#ennemy_board");
-
-  ennemyBoard.classList.add("hidden-element");
-  modal.style.display = 'none';
-
-  socket.emit("reset grid", roomId)
-  drawGrid()
-});
+document.getElementById('goToMenuButton').addEventListener('click', () => {
+  socket.emit("game ended", roomId);
+})
 
 setTimeout(startConnection, 100);

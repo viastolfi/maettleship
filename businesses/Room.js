@@ -1,8 +1,7 @@
 class Room {
-    constructor(room) {
+    constructor() {
         this.id = this.generateRoomId(); // change the id with something prettier
         this.players = [];
-        this.room = room;
         this.actualPlayer = "";
         this.ennemy = "";
     }
@@ -27,14 +26,6 @@ class Room {
 
         return this.actualPlayer
     }
-
-    /*
-    endGame() {
-        this.room.players.forEach((player) =>
-            io.to(player.socketId).emit("end game"),
-        );
-    }
-    */
 
     move(move) {
         let ret = {isMove: false, player: this.actualPlayer}
@@ -76,6 +67,7 @@ class Room {
 
     validBoards() {
         this.players.forEach((player) => {
+            // sometimes i get error here
             player.pieces.forEach((piece) => {
             for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
                 for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
