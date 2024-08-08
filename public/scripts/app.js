@@ -177,9 +177,7 @@ function onJoinRoom() {
     
     socket.emit("ask for room", roomKey, socket.id, (response) => {
       if (response.status !== true) {
-        if (errorHolder.textContent == "") {
-          errorHolder.append("Error : Room Id don't exist")
-        }
+        errorHolder.textContent = "Error : " + response.message
       } else {
         loader.style.display = "none";
         roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;

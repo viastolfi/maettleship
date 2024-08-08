@@ -202,9 +202,17 @@ io.on("connection", (socket) => {
 
     if (room == null) {
       callack({
-        status: false
+        status: false,
+        message: "No room for this code"
       })
       return 
+    }
+
+    if (room.players.length >= 2) {
+      callack({
+        status: false,
+        message: "Room is full"
+      })
     }
 
     callack({
