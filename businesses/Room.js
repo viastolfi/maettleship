@@ -4,6 +4,7 @@ class Room {
         this.players = [];
         this.actualPlayer = "";
         this.ennemy = "";
+        this.wantRematch = 0;
     }
 
     addPlayer(player) {
@@ -71,7 +72,7 @@ class Room {
             player.pieces.forEach((piece) => {
             for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
                 for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
-                player.grid.cases[i][j].isShip = true;
+                    player.grid.cases[i][j].isShip = true;
                 }
             }
             });

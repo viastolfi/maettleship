@@ -25,6 +25,22 @@
             </div>
         </div>
 
+        <div class="modal" id="waitChoiceModal">
+            <div class="modalContent" id="waitChoiceModalContent">
+                <p>Waiting for opponent ...</p>
+            </div>
+        </div>
+
+        <div class="modal" id="rematchModal">
+            <div class="modalContent" id="rematchModalContent">
+                <p>Your opponent want to rematch !</p>
+                <div class="buttonChoice">
+                    <button id="acceptButton" class="close">Accept</button>
+                    <button id="goToMenuButton2" class="close">Go to menu</button>
+                </div>
+            </div>
+        </div>
+
         <div id="roomkeyHolder"></div>
         
         <div id="loader">
@@ -57,6 +73,12 @@
 
         <button class="btn-primary hidden-element" id="rotate" type="submit">
             Rotate
+        </button>
+
+        <br>
+
+        <button class="btn-primary" style="display: none;" id="validGrid" type="submit">
+            Validate !
         </button>
 
         <p id="playerInfo"></p>

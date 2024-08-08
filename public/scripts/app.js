@@ -17,9 +17,13 @@ function startConnection() {
     .addEventListener("click", onJoinRoom());
 }
 
-socket.on("start game", (username) => {
+socket.on("start game", () => {
   const ennemyBoard = document.querySelector("#ennemy_board");
+  const waitChoiceModal = document.getElementById("waitChoiceModal")
+  const validGrid = document.getElementById("validGrid")
 
+  validGrid.style.display = 'none'
+  waitChoiceModal.style.display = 'none'
   ennemyBoard.style.display = 'block'
 
   drawGrid();
@@ -66,8 +70,49 @@ socket.on("go to menu", () => {
   goToMenu()
 })
 
+// #region rematch handling
+
+socket.on("ask for rematch", () => {
+  const rematchModal = document.getElementById("rematchModal")
+  const gameEndedModal = document.getElementById("gameEndedModal")
+
+  gameEndedModal.style.display = 'none'
+  rematchModal.style.display = 'block'
+})
+
+socket.on("rematch grid", () => {
+  const waitChoiceModal = document.getElementById("waitChoiceModal")
+  const rematchModal = document.getElementById("rematchModal")
+  const playNotification = document.querySelector("#play_notification");
+  const hitNotification = document.querySelector("#hit_notification");
+  const winNotification = document.querySelector("#win_notification");
+  const ennemyGrid = document.getElementById("ennemy_board")
+  const validGrid = document.getElementById("validGrid")
+
+  validGrid.style.display = 'block'
+  playNotification.style.display = 'none'
+  hitNotification.style.display = 'none'
+  winNotification.style.display = 'none'
+  waitChoiceModal.style.display = 'none'
+  rematchModal.style.display = 'none'
+  ennemyGrid.style.display = 'none'
+
+  drawGrid()
+})
+
+document.getElementById("validGrid").addEventListener('click', () => {
+  const waitChoiceModal = document.getElementById("waitChoiceModal")
+  waitChoiceModal.style.display = 'block'
+
+  socket.emit("valid grid", roomId)
+})
+
+// #endregion rematch handling
+
 function goToMenu() {
-  const modal = document.getElementById("gameEndedModal")
+  const gameEndedModal = document.getElementById("gameEndedModal")
+  const waitChoiceModal = document.getElementById("waitChoiceModal")
+  const rematchModal = document.getElementById("rematchModal")
   const ennemyGrid = document.getElementById("ennemy_board")
   const roomkeyHolder = document.getElementById("roomkeyHolder")
   const loader = document.querySelector("#loader");
@@ -80,7 +125,9 @@ function goToMenu() {
   playNotification.style.display = 'none'
   hitNotification.style.display = 'none'
   winNotification.style.display = 'none'
-  modal.style.display = 'none'
+  gameEndedModal.style.display = 'none'
+  waitChoiceModal.style.display = 'none'
+  rematchModal.style.display = 'none'
   ennemyGrid.style.display = 'none'
   loader.style.display = 'block'
 
@@ -152,8 +199,31 @@ document.getElementById('closeModalButton').addEventListener('click', () => {
   goToMenu()
 });
 
+document.getElementById('acceptButton').addEventListener('click', () => {
+  const rematchModal = document.getElementById('rematchModal')
+  rematchModal.style.display = 'none'
+
+  socket.emit('rematch grid', roomId)
+})
+
 document.getElementById('goToMenuButton').addEventListener('click', () => {
   socket.emit("game ended", roomId);
+})
+
+document.getElementById('goToMenuButton2').addEventListener('click', () => {
+  socket.emit("game ended", roomId);
+})
+
+//document.getElementById('acceptButton').addEventListener('')
+
+document.getElementById('rematchButton').addEventListener('click', () => {
+  const endGameModal = document.getElementById('gameEndedModal')
+  const waitChoicemodal = document.getElementById('waitChoiceModal');
+
+  waitChoicemodal.style.display = 'block'
+  endGameModal.style.display = 'none'
+
+  socket.emit("ask for rematch", roomId, socket.id)
 })
 
 setTimeout(startConnection, 100);
