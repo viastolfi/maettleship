@@ -13,8 +13,8 @@ class Player {
 
   createPiece() {
     this.pieces.push(new Piece(1, { x: 0, y: 0 }, { x: 0, y: 0 }));
-    this.pieces.push(new Piece(2, { x: 2, y: 2 }, { x: 2, y: 3 }));
-    this.pieces.push(new Piece(3, { x: 4, y: 3 }, { x: 4, y: 5 }))
+    //this.pieces.push(new Piece(2, { x: 2, y: 2 }, { x: 2, y: 3 }));
+    //this.pieces.push(new Piece(3, { x: 4, y: 3 }, { x: 4, y: 5 }))
 
     this.pieces.forEach((piece) => {
       for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {

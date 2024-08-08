@@ -215,7 +215,7 @@ io.on("connection", (socket) => {
     room.validBoards();
 
     for (let i = 0; i < room.players.length; i++) {
-      io.to(room.players[i].id).emit("start game", room.players[i === 0 ? 1 : 0].username)
+      io.to(room.players[i].id).emit("start game")
     }
 
     /*
@@ -294,6 +294,41 @@ io.on("connection", (socket) => {
       .find((p) => p.id === playerId)
       .pieces.find((piece) => piece.id === pieceId).isSelected = status;
   });
+
+  // #region rematch hanlding
+
+  socket.on("ask for rematch", (roomId, playerId) => {
+    const room = rooms.find((r) => r.id === roomId)
+    const opponent = room.players.find((p) => p.id !== playerId)
+
+    io.to(opponent.id).emit("ask for rematch");
+  })
+
+  socket.on("rematch grid", (roomId) => {
+    const room = rooms.find((r) => r.id === roomId)
+
+    room.players.forEach(p => {
+      p.resetGrid()
+      io.to(p.id).emit("rematch grid")
+    })
+  })
+
+  socket.on("valid grid", (roomId) => {
+    const room = rooms.find((r) => r.id === roomId)
+
+    room.wantRematch = room.wantRematch + 1 
+
+    if (room.wantRematch === 2) {
+      room.validBoards();
+      room.wantRematch = 0
+      room.players.forEach(p => {
+        io.to(p.id).emit("start game")
+      })
+      askToPlay(room.start());
+    }
+  })
+
+  // #endregion rematch hanlding
 });
 
 const askToPlay = (player) => {
