@@ -66,6 +66,7 @@ The current state of maettleship is the following one
 - [X] End game (partially handled)
 - [X] Create an account and add it on the database
 - [X] Connection to your account
+- [X] Rematch 
 
 # TODO
 
@@ -73,7 +74,6 @@ Those point are the feature I still need to introduce
 
 - [ ] Security improvement (hashed password, sql injection handling)
 - [ ] Fix all the problems linked to my rooms implementation
-- [ ] Rematch 
 - [ ] Player historic (link to its account)
 - [ ] Global scoreboard
 - [ ] General error handling
