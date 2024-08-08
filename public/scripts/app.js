@@ -20,7 +20,7 @@ function startConnection() {
 socket.on("start game", (username) => {
   const ennemyBoard = document.querySelector("#ennemy_board");
 
-  ennemyBoard.classList.remove("hidden-element");
+  ennemyBoard.style.display = 'block'
 
   drawGrid();
   drawEnnemyGrid();
@@ -31,13 +31,13 @@ socket.on("end game", () => {
   const ennemyBoard = document.querySelector("#ennemy_board");
   const loader = document.querySelector("#loader");
 
-  loader.classList.remove("hidden-element");
-  ennemyBoard.classList.add("hidden-element");
+  loader.style.display = 'block'
+  ennemyBoard.style.display = 'none'
 });
 
 socket.on("play", () => {
   const notification = document.querySelector("#play_notification");
-  notification.classList.remove("hidden-element");
+  notification.style.display = 'block'
   play();
 });
 
@@ -45,13 +45,13 @@ socket.on("played move", (isHit, isWin) => {
   const hitNotification = document.querySelector("#hit_notification");
   const winNotification = document.querySelector("#win_notification");
 
-  if (isHit) hitNotification.classList.remove("hidden-element");
-  else hitNotification.classList.add("hidden-element");
+  if (isHit) hitNotification.style.display = 'block'
+  else hitNotification.style.display = 'none'
 
   if (isWin) gameEnd()
 
-  if (isWin) winNotification.classList.remove("hidden-element");
-  else winNotification.classList.add("hidden-element");
+  if (isWin) winNotification.style.display = 'block'
+  else winNotification.style.display = 'none'
 
   drawGrid();
   drawEnnemyGrid();
@@ -63,22 +63,32 @@ socket.on('opponent left', () => {
 })
 
 socket.on("go to menu", () => {
+  goToMenu()
+})
+
+function goToMenu() {
   const modal = document.getElementById("gameEndedModal")
   const ennemyGrid = document.getElementById("ennemy_board")
-  const loader = document.getElementById("loader")
   const roomkeyHolder = document.getElementById("roomkeyHolder")
-  const notifications = document.getElementById("inGameNotification")
+  const loader = document.querySelector("#loader");
+  const playNotification = document.querySelector("#play_notification");
+  const hitNotification = document.querySelector("#hit_notification");
+  const winNotification = document.querySelector("#win_notification");
 
   roomId = ""
 
-  notifications.style.display = 'none'
+  playNotification.style.display = 'none'
+  hitNotification.style.display = 'none'
+  winNotification.style.display = 'none'
   modal.style.display = 'none'
   ennemyGrid.style.display = 'none'
-  loader.classList.remove = "hidden-element"
-  roomkeyHolder.style.display = 'none'
+  loader.style.display = 'block'
+
+  roomkeyHolder.innerHTML = ""
+  roomkeyHolder.style.display = 'block'
 
   drawGrid()
-})
+}
 
 function gameEnd() {
   const modal = document.getElementById('gameEndedModal');
@@ -88,7 +98,7 @@ function gameEnd() {
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
   socket.emit("play", roomId, socket.id, move);
-  notification.classList.add("hidden-element");
+  notification.style.display = 'none'
 }
 
 function onCreateRoom() {
@@ -96,7 +106,7 @@ function onCreateRoom() {
     event.preventDefault();
     const loader = document.querySelector("#loader");
     const roomkeyHolder = document.querySelector("#roomkeyHolder");
-    loader.classList.add("hidden-element");
+    loader.style.display = 'none';
 
     socket.emit("room creation", socket.id, (response) => {
       roomId = response.roomId;
@@ -124,7 +134,7 @@ function onJoinRoom() {
           errorHolder.append("Error : Room Id don't exist")
         }
       } else {
-        loader.classList.add("hidden-element");
+        loader.style.display = "none";
         roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
       }
     });
@@ -135,13 +145,11 @@ function onJoinRoom() {
 
 document.getElementById('closeModalButton').addEventListener('click', () => {
   const modal = document.getElementById('opponentLeftModal');
-  const ennemyBoard = document.querySelector("#ennemy_board");
-
-  ennemyBoard.classList.add("hidden-element");
   modal.style.display = 'none';
 
   socket.emit("reset grid", roomId)
-  drawGrid()
+
+  goToMenu()
 });
 
 document.getElementById('goToMenuButton').addEventListener('click', () => {
