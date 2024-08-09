@@ -3,34 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connection View</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <link rel="stylesheet" href="assets/styles/global.css" />
+    <link rel="stylesheet" href="assets/styles/formStyle.css" />
+    <title>Maettleship</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Register</h1>
-        <form id="registerForm">
-            <label for="email">Pseudo :</label>
-            <input type="text" id="pseudo" name="pseudo" required>
+    <div class="form-container">
+        <h1 class="title">Maettleship</h1>
+        <form class="display-form" id="logInForm">
+            <h1>Log in</h1>
+            <input class="form-entry" type="text" id="pseudoLogIn" name="pseudo" placeholder="Pseudo" required>
+            <input class="form-entry" type="password" id="passwordLogIn" name="password" placeholder="Password" required>
             
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <button type="submit">Register</button>
+            <button class="btn form-validation-btn" type="submit">Log in</button>
         </form>
-        <div id="message"></div>
-    </div>
 
-    <div class="container">
-        <h1>Log in</h1>
-        <form id="logInForm">
-            <label for="email">Pseudo :</label>
-            <input type="text" id="pseudoLogIn" name="pseudo" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" id="passwordLogIn" name="password" required>
-            
-            <button type="submit">Log in</button>
-        </form>
+        <p class="sub-text">No account ? <a href="/register">Sign up !</a> </p> 
+
         <div id="messageLogIn"></div>
     </div>
     

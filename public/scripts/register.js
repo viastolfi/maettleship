@@ -1,12 +1,12 @@
-document.getElementById('logInForm').addEventListener('submit', async function (event) {
+document.getElementById('registerForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 
-    const pseudo = document.getElementById('pseudoLogIn').value;
-    const password = document.getElementById('passwordLogIn').value;
-    const messageDiv = document.getElementById('messageLogIn');
+    const pseudo = document.getElementById('pseudo').value;
+    const password = document.getElementById('password').value;
+    const messageDiv = document.getElementById('message');
 
     try {
-        const response = await fetch('/logIn', {
+        const response = await fetch('/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ document.getElementById('logInForm').addEventListener('submit', async function (
         const result = await response.json();
         
         if (response.ok) {
-            messageDiv.textContent = 'User logged in successfully!';
+            messageDiv.textContent = 'User registered successfully!';
             messageDiv.style.color = 'green';
             window.location.href = result.redirectUrl;
         } else {

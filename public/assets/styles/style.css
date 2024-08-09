@@ -44,8 +44,14 @@
     justify-content: space-evenly;
 }
 
-
 #errorHandler {
     margin-top: 3%;
     color: red;
+}
+
+.board-container {
+    display: flex;
+    align-items: center;
+    justify-content: column;
+    justify-content: space-evenly;
 }

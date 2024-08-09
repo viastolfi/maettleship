@@ -38,6 +38,23 @@ app.get('/',  (req, res) => {
   }
 })
 
+app.get('/register', (req, res) => {
+  const token = req.cookies.authToken;
+
+  if(token) {
+    try {
+      jwt.verify(token, secretKey);
+      res.status(200)
+      res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+    } catch (ex) {
+      res.status(401)
+      res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
+    }
+  } else {
+    res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
+  }
+})
+
 app.get('/game', (req, res) => {
   res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
