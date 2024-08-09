@@ -9,7 +9,6 @@ To use maettleship you'll need the following app on your computer
 
 * node js and npm
 * mysql
-* A firefox derived web browser (Don't know why it doesn't work on chrome)
 
 # Installation
 
@@ -52,7 +51,7 @@ COOKIE_SECRET_KEY=secret_key
 
 Now you can start the server using the following command on your terminal.
 
-`npm run start`
+`npm run dev`
 
 # Current State
 
@@ -73,7 +72,6 @@ The current state of maettleship is the following one
 Those point are the feature I still need to introduce
 
 - [ ] Security improvement (hashed password, sql injection handling)
-- [ ] Fix all the problems linked to my rooms implementation
 - [ ] Player historic (link to its account)
 - [ ] Global scoreboard
 - [ ] General error handling
