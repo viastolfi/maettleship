@@ -213,6 +213,7 @@ io.on("connection", (socket) => {
         status: false,
         message: "Room is full"
       })
+      return
     }
 
     callack({
