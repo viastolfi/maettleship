@@ -14,7 +14,8 @@ To use maettleship you'll need the following app on your computer
 
 ### Online
 
-I recently add a branch called `docker-deployment` which I use to deploy maettleship on an online vps. I can't give you the url now cause there is still a lot of security problem that I want to fix first, but be patient it'll come.
+You can reach maettleship here : https://maettleship.com
+Even if I've improve security a lot recently I encourage you to not use your real password we never know when a new attack I didn't handle will come.
 
 ### Locally
 
@@ -62,16 +63,19 @@ The current state of maettleship is the following one
 - [X] Join a private game with a party code
 - [X] Game is playable (hit, win)
 - [X] Player left the game situation handled
-- [X] End game (partially handled)
+- [X] End game
 - [X] Create an account and add it on the database
 - [X] Connection to your account
 - [X] Rematch 
+- [X] Security improvement (hashed password, sql injection handling)
+- [X] Reverse proxy for better URL
+- [X] HTTPS implementation
 
 # TODO
 
 Those point are the feature I still need to introduce
 
-- [ ] Security improvement (hashed password, sql injection handling)
+- [ ] UX improvement
 - [ ] Player historic (link to its account)
 - [ ] Global scoreboard
 - [ ] General error handling
