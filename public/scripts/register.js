@@ -5,13 +5,15 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const password = document.getElementById('password').value;
     const messageDiv = document.getElementById('message');
 
+    const hashedPassword = CryptoJS.SHA256(password).toString();
+
     try {
         const response = await fetch('/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ pseudo, password }),
+            body: JSON.stringify({ pseudo, password: hashedPassword }),
         });
 
         const result = await response.json();
@@ -27,5 +29,24 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     } catch (error) {
         messageDiv.textContent = `Error: ${error.message}`;
         messageDiv.style.color = 'red';
+    }
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/user-info', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            window.location.href = '/game';
+        } else {
+            console.error("no token found")
+        }
+    } catch (error) {
+        console.error("Error : ", error)
     }
 });

@@ -66,9 +66,18 @@ socket.on('opponent left', () => {
   modal.style.display = 'block';
 })
 
+function deleteCookie(name) {
+  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 socket.on("go to menu", () => {
   goToMenu()
 })
+
+socket.on("disconnect", () => {
+  deleteCookie('authToken');
+  window.location.href = "/"
+});
 
 // #region rematch handling
 

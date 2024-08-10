@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const path = require("path");
+const bcrypt = require('bcrypt');
 
 const { Room } = require('./businesses/Room.js');
 const { Player } = require(`${__dirname}/businesses/Player.js`);
@@ -22,41 +23,15 @@ const secretKey = process.env.COOKIE_SECRET_KEY;
 // #region routing and cookies
 
 app.get('/',  (req, res) => {
-  const token = req.cookies.authToken;
-
-  if(token) {
-    try {
-      jwt.verify(token, secretKey);
-      res.status(200)
-      res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
-    } catch (ex) {
-      res.status(401)
-      res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
-    }
-  } else {
-    res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
-  }
+  return res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
 })
 
 app.get('/register', (req, res) => {
-  const token = req.cookies.authToken;
-
-  if(token) {
-    try {
-      jwt.verify(token, secretKey);
-      res.status(200)
-      res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
-    } catch (ex) {
-      res.status(401)
-      res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
-    }
-  } else {
-    res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
-  }
+    return res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
 })
 
 app.get('/game', (req, res) => {
-  res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+  return res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
 })
 
 app.post('/logIn', (req, res) => {
@@ -66,29 +41,36 @@ app.post('/logIn', (req, res) => {
     return res.status(400).send('pseudo and password are required.');
   }
 
-  const query = 'SELECT * FROM users WHERE pseudo = ? AND password = ?';
-  db.query(query, [pseudo, password], (err, results) => {
+  const query = 'SELECT hashed_password FROM users WHERE pseudo = ?';
+  db.query(query, [pseudo], async (err, results) => {
     if (err) {
       console.error('Error inserting user into the database:', err);
       return res.status(500).send({message: 'Internal server error.'});
     }
     if (results.length === 1) {
-      const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
-      res.cookie('authToken', token, { httpOnly: true, secure: false });
-
-      res.status(201).send({message: 'User logged in successfully.', redirectUrl: '/game' });
+      const user = results[0]
+      if (await bcrypt.compare(password, user.hashed_password)) {
+        const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
+        res.cookie('authToken', token, { httpOnly: true, secure: false });
+  
+        return res.status(201).send({message: 'User logged in successfully.', redirectUrl: '/game' });
+      } else {
+        return res.status(401).send({message: "Password is incorrect"})
+      }
     } else {
-      res.status(401).send({message: "Username or password is incorrect"})
+      return res.status(401).send({message: "Username is incorrect"})
     }
   })
 })
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   const { pseudo, password } = req.body;
 
   if (!pseudo || !password) {
     return res.status(400).send('Email and password are required.');
   }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const getPseudoQuery = 'SELECT pseudo FROM users WHERE pseudo = ?'
   db.query(getPseudoQuery, [pseudo], (err, results) => {
@@ -101,8 +83,8 @@ app.post('/register', (req, res) => {
     }
   });
   
-  const query = 'INSERT INTO users (pseudo, password) VALUES (?, ?)';
-  db.query(query, [pseudo, password], (err, results) => {
+  const query = 'INSERT INTO users (pseudo, hashed_password) VALUES (?, ?)';
+  db.query(query, [pseudo, hashedPassword], (err, results) => {
     if (err) {
       console.error('Error inserting user into the database:', err);
       return res.status(500).send('Internal server error.');
@@ -131,12 +113,12 @@ app.get('/user-info', (req, res) => {
         return res.status(500).send('Internal server error.');
       }
       if (results.length === 0) {
-        return res.status(404).send('User not found.');
+        return res.status(401).send('User not found.');
       }
-      res.json(results[0]);
+      return res.json(results[0]);
     });
   } catch (ex) {
-    res.status(400).send('Invalid token.');
+    return res.status(400).send('Invalid token.');
   }
 });
 
