@@ -1,4 +1,4 @@
-import { sendMove, socket, roomId } from "./app.js";
+import { sendMove, socket, roomId, handleError } from "./app.js";
 
 const ownCanvas = document.getElementById("own_board");
 const ownCtx = ownCanvas.getContext("2d");
@@ -12,6 +12,9 @@ let selectedPiece = "";
 export function drawGrid() {
   ownCtx.strokeStyle = "black";
   socket.emit("get player", roomId, socket.id, (response) => {
+    if (response.status === false) {
+      handleError()
+    }
     let player = response.player;
     player.pieces.forEach((piece) => {
       for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
@@ -78,6 +81,10 @@ export function drawEnnemyGrid() {
   ennemyCtx.strokeStyle = "red";
 
   socket.emit("get ennemy", roomId, socket.id, (response) => {
+    if (response.status === false) {
+      handleError()
+    }
+
     let player = response.player;
     for (let i = 0; i < player.grid.cases.length; i++) {
       for (let j = 0; j < player.grid.cases.length; j++) {
@@ -217,6 +224,9 @@ function clickNewCase(piece) {
     let selectedCase = getCursorPosition(ownCanvas, event);
 
     socket.emit("get player", " ", socket.id, (response) => {
+      if (response.status === false) {
+        handleError()
+      }
       let player = response.player;
       player.pieces.forEach((p) => {
         if (
@@ -252,12 +262,16 @@ function clickNewCase(piece) {
               player.grid.cases[i][j].isShip = true;
             }
           }
-          socket.emit("update piece", socket.id, p);
+          socket.emit("update piece", socket.id, p, (response) => {
+            if (response.status === false) {
+              handleError()
+            }
+          });
           socket.emit("update grid", socket.id, player.grid, (response) => {
             if (response.status === true) {
               drawGrid();
             } else {
-              // TODO : error handling
+              handleError()
             }
           });
         }
@@ -273,6 +287,9 @@ function rotatePiece(piece) {
     event.preventDefault();
 
     socket.emit("get player", " ", socket.id, (response) => {
+      if (response.status === false) {
+        handleError()
+      }
       let player = response.player;
       player.pieces.forEach((p) => {
         if (
@@ -305,12 +322,16 @@ function rotatePiece(piece) {
             }
           }
         }
-        socket.emit("update piece", socket.id, p);
+        socket.emit("update piece", socket.id, p, (response) => {
+          if (response.status === false) {
+            handleError()
+          }
+        });
         socket.emit("update grid", socket.id, player.grid, (response) => {
           if (response.status === true) {
             drawGrid();
           } else {
-            // TODO : error handling
+            handleError()
           }
         });
       });
@@ -324,7 +345,9 @@ function clickChoose(event) {
   let selectedCase = getCursorPosition(ownCanvas, event);
 
   socket.emit("get player", " ", socket.id, (response) => {
-    // Sometimes i get an error there
+    if (response.status === false) {
+      handleError()
+    }
     let player = response.player;
     if (player.grid.cases[selectedCase.col][selectedCase.row].isShip) {
       const rotate_button = document.querySelector("#rotate");
@@ -335,11 +358,19 @@ function clickChoose(event) {
         let oldPieceId = selectedPiece.id;
         player.pieces.forEach((p) => {
           if (p.id === oldPieceId) {
-            socket.emit("change selection status", socket.id, p.id, false);
+            socket.emit("change selection status", socket.id, p.id, false, (response) => {
+              if (response.status === false) {
+                handleError()
+              }
+            });
           }
           if (p.id === piece.id) {
             selectedPiece = p;
-            socket.emit("change selection status", socket.id, p.id, true);
+            socket.emit("change selection status", socket.id, p.id, true, (response) => {
+              if (response.status === false) {
+                handleError()
+              }
+            });
           }
         });
       }

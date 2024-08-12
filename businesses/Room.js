@@ -69,16 +69,20 @@ class Room {
     }
 
     validBoards() {
-        this.players.forEach((player) => {
-            // sometimes i get error here
-            player.pieces.forEach((piece) => {
-            for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
-                for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
-                    player.grid.cases[i][j].isShip = true;
+        try {
+            this.players.forEach((player) => {
+                // sometimes i get error here
+                player.pieces.forEach((piece) => {
+                for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {
+                    for (let j = piece.startPos.y; j <= piece.endPos.y; j++) {
+                        player.grid.cases[i][j].isShip = true;
+                    }
                 }
-            }
+                });
             });
-        });
+        } catch {
+            throw new Error()
+        }
     }
 
     generateRoomId() {

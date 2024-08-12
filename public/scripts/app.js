@@ -3,7 +3,7 @@ import { drawGrid, drawEnnemyGrid, play, selectPiece } from "./game.js";
 export const socket = io();
 export let roomId = "";
 
-function startConnection() {
+socket.on("connect", () => {
   socket.emit("first connection", socket.id)
 
   drawGrid();
@@ -15,6 +15,13 @@ function startConnection() {
   document
     .querySelector("#join")
     .addEventListener("click", onJoinRoom());
+})
+
+
+export function handleError() {
+  console.log("an error occurs")
+  socket.emit("handle error", socket.id, roomId)
+  window.location.href = "/error"
 }
 
 socket.on("start game", () => {
@@ -113,7 +120,10 @@ document.getElementById("validGrid").addEventListener('click', () => {
   const waitChoiceModal = document.getElementById("waitChoiceModal")
   waitChoiceModal.style.display = 'block'
 
-  socket.emit("valid grid", roomId)
+  socket.emit("valid grid", roomId, (response) => {
+    if (response.status === false) {
+    }
+  })
 })
 
 // #endregion rematch handling
@@ -153,7 +163,11 @@ function gameEnd() {
 
 export function sendMove(move) {
   const notification = document.querySelector("#play_notification");
-  socket.emit("play", roomId, socket.id, move);
+  socket.emit("play", roomId, socket.id, move, (response) => {
+    if (response.status === false) {
+      handleError()
+    } 
+  });
   notification.style.display = 'none'
 }
 
@@ -186,6 +200,9 @@ function onJoinRoom() {
     
     socket.emit("ask for room", roomKey, socket.id, (response) => {
       if (response.status !== true) {
+        if (response.reason === "exception") {
+          handleError()
+        }
         errorHolder.textContent = "Error : " + response.message
       } else {
         loader.style.display = "none";
@@ -201,7 +218,11 @@ document.getElementById('closeModalButton').addEventListener('click', () => {
   const modal = document.getElementById('opponentLeftModal');
   modal.style.display = 'none';
 
-  socket.emit("reset grid", roomId)
+  socket.emit("reset grid", roomId, (respone) => {
+    if (respone.status === false) {
+      handleError()
+    }
+  })
 
   goToMenu()
 });
@@ -210,18 +231,28 @@ document.getElementById('acceptButton').addEventListener('click', () => {
   const rematchModal = document.getElementById('rematchModal')
   rematchModal.style.display = 'none'
 
-  socket.emit('rematch grid', roomId)
+  socket.emit('rematch grid', roomId, (response) => {
+    if (response.status === false) {
+      handleError()
+    }
+  })
 })
 
+function sendGameEnded() {
+  socket.emit("game ended", roomId, (response) => {
+    if (response.status === false) {
+      handleError()
+    }
+  });
+}
+
 document.getElementById('goToMenuButton').addEventListener('click', () => {
-  socket.emit("game ended", roomId);
+  sendGameEnded()
 })
 
 document.getElementById('goToMenuButton2').addEventListener('click', () => {
-  socket.emit("game ended", roomId);
+  sendGameEnded()
 })
-
-//document.getElementById('acceptButton').addEventListener('')
 
 document.getElementById('rematchButton').addEventListener('click', () => {
   const endGameModal = document.getElementById('gameEndedModal')
@@ -230,11 +261,9 @@ document.getElementById('rematchButton').addEventListener('click', () => {
   waitChoicemodal.style.display = 'block'
   endGameModal.style.display = 'none'
 
-  socket.emit("ask for rematch", roomId, socket.id)
+  socket.emit("ask for rematch", roomId, socket.id, (response) => {
+    if (response.status === false) {
+      handleError()
+    }
+  })
 })
-
-document.getElementById('resetRoom').addEventListener('click', () => {
-  socket.emit("delete room", roomId)
-})
-
-setTimeout(startConnection, 100);

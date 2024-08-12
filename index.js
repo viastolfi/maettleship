@@ -1,37 +1,41 @@
+const path = require("path");
 const express = require("express");
 const app = express();
-const http = require("http").Server(app);
-const io = require("socket.io")(http);
-const port = 3000;
-const db = require("./database.js")
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
-const path = require("path");
 const bcrypt = require('bcrypt');
+const http = require("http").Server(app);
+const io = require("socket.io")(http);
 
-const { Room } = require('./businesses/Room.js');
-const { Player } = require(`${__dirname}/businesses/Player.js`);
+const db = require(path.normalize(`${__dirname}/database.js`))
+const { Room } = require(path.normalize(`${__dirname}/businesses/Room.js`));
+const { Player } = require(path.normalize(`${__dirname}/businesses/Player.js`));
+const secretKey = process.env.COOKIE_SECRET_KEY;
 
+const port = 3000;
 app.use(express.static("public"))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const secretKey = process.env.COOKIE_SECRET_KEY;
-
 // #region routing and cookies
 
 app.get('/',  (req, res) => {
-  return res.sendFile(path.join(__dirname, '/public/pages/connectionView.html'))
+  return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/connectionView.html')))
 })
 
 app.get('/register', (req, res) => {
-    return res.sendFile(path.join(__dirname, '/public/pages/signupView.html'))
+    return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/signupView.html')))
 })
 
 app.get('/game', (req, res) => {
-  return res.sendFile(path.join(__dirname, '/public/pages/gameView.html'))
+    return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/gameView.html')))
+})
+
+app.get('/error', (req, res) => {
+  res.status(200)
+  return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/errorView.html')))
 })
 
 app.post('/logIn', (req, res) => {
@@ -162,10 +166,22 @@ io.on("connection", (socket) => {
     console.log(`Player disconnected: ${socket.id}`);
   })
 
-  socket.on('delete room', (roomId) => {
-    const roomIndex = rooms.findIndex((r) => r.id === roomId)
-    rooms.splice(roomIndex, 1)
-    console.log(rooms)
+  socket.on("handle error", (id, roomId) => {
+    const room = rooms.find((r) => r.id === roomId)
+
+    console.log(room)
+
+    if (room != null) {
+      const playerIndex = room.players.findIndex((p) => p.id === id)
+      room.players.splice(playerIndex, 1)
+
+      if (room.players.length > 0) {
+        io.to(room.players[0].id).emit("opponent left")
+      } else {
+        const roomIndex = rooms.findIndex((r) => r.id === roomId)
+        rooms.splice(roomIndex, 1)
+      }
+    }
   })
 
   socket.on("first connection", (socketId) => {
@@ -202,49 +218,56 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("ask for room", (roomId, id, callack) => {
+  socket.on("ask for room", (roomId, id, callback) => {
     let room = rooms.find((r) => r.id === roomId);
 
-    if (room == null) {
-      callack({
-        status: false,
-        message: "No room for this code"
+    try {
+      if (room == null) {
+        callback({
+          status: false,
+          message: "No room for this code"
+        })
+        return 
+      }
+  
+      if (room.players.length >= 2) {
+        callback({
+          status: false,
+          message: "Room is full"
+        })
+        return
+      }
+  
+      callback({
+        status: true
       })
-      return 
-    }
-
-    if (room.players.length >= 2) {
-      callack({
+  
+      room.addPlayer(players.find((p) => p.id === id));
+      room.validBoards();
+  
+      for (let i = 0; i < room.players.length; i++) {
+        io.to(room.players[i].id).emit("start game")
+      }
+  
+      askToPlay(room.start());
+    } catch {
+      callback({
         status: false,
-        message: "Room is full"
+        reason: "exception"
       })
-      return
     }
-
-    callack({
-      status: true
-    })
-
-    room.addPlayer(players.find((p) => p.id === id));
-    room.validBoards();
-
-    for (let i = 0; i < room.players.length; i++) {
-      io.to(room.players[i].id).emit("start game")
-    }
-
-    /*
-    room.players.forEach((player) => {
-      io.to(player.id).emit("start game");
-    });
-    */
-
-    askToPlay(room.start());
   });
 
-  socket.on("play", (roomId, id, move) => {
+  socket.on("play", (roomId, id, move, callback) => {
     let room = rooms.find((r) => r.id === roomId);
 
-    sendMoveToPlayers(room.move(move));
+    try {
+      sendMoveToPlayers(room.move(move));
+    } catch {
+      callback({
+        status: false
+      })
+    }
   });
 
   socket.on("get player", (roomId, id, callback) => {
@@ -262,83 +285,141 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("get ennemy", (roomId, id, callack) => {
+  socket.on("get ennemy", (roomId, id, callback) => {
     const room = rooms.find((r) => r.id === roomId);
-    const out = room.players.find((p) => p.id !== id);
 
-    callack({
-      player: out,
-    });
+    try {
+      const out = room.players.find((p) => p.id !== id);
+      
+      callback({
+        status: true,
+        player: out,
+      });
+    } catch {
+      callback({
+        status: false
+      })
+    }
   });
 
   socket.on("update grid", (id, grid, callback) => {
     const player = players.find((p) => p.id === id);
-    player.grid = grid;
 
-    callback({
-      status: true,
-    });
+    try {
+      player.grid = grid;
+      callback({  
+        status: true,
+      });
+    } catch {
+      callback({
+        status: false
+      })
+    }
   });
 
-  socket.on("game ended", (roomId) => {
+  socket.on("game ended", (roomId, callback) => {
     const roomIndex = rooms.findIndex((r) => r.id === roomId)
 
-    rooms[roomIndex].players.forEach(player => {
-      player.resetGrid()
-      io.to(player.id).emit("go to menu")
-    });
-
-    rooms.splice(roomIndex, 1)
+    try {
+      rooms[roomIndex].players.forEach(player => {
+        player.resetGrid()
+        io.to(player.id).emit("go to menu")
+      });
+  
+      rooms.splice(roomIndex, 1)
+    } catch {
+      callback({
+        status: false
+      })
+    }
   })
 
-  socket.on("reset grid", (roomId) => {
+  socket.on("reset grid", (roomId, callback) => {
     const player = rooms.find((r) => r.id === roomId).players[0]
-    player.resetGrid();
+    try {
+      player.resetGrid();
+    } catch {
+      callback({
+        status: false
+      })
+    }
   })
 
-  socket.on("update piece", (playerId, piece) => {
+  socket.on("update piece", (playerId, piece, callback) => {
     const player = players.find((p) => p.id === playerId);
-    const index = player.pieces.findIndex((p) => p.id === piece.id);
 
-    player.pieces[index] = piece;
+    try {      
+      const index = player.pieces.findIndex((p) => p.id === piece.id);
+  
+      player.pieces[index] = piece;
+    } catch {
+      callback({
+        status: false
+      })
+    }
   });
 
-  socket.on("change selection status", (playerId, pieceId, status) => {
-    players
-      .find((p) => p.id === playerId)
-      .pieces.find((piece) => piece.id === pieceId).isSelected = status;
+  socket.on("change selection status", (playerId, pieceId, status, callback) => {
+    try {
+      players
+        .find((p) => p.id === playerId)
+        .pieces.find((piece) => piece.id === pieceId).isSelected = status;
+    } catch {
+      callback({
+        status: false
+      })
+    }
   });
 
   // #region rematch hanlding
 
-  socket.on("ask for rematch", (roomId, playerId) => {
-    const room = rooms.find((r) => r.id === roomId)
-    const opponent = room.players.find((p) => p.id !== playerId)
-
-    io.to(opponent.id).emit("ask for rematch");
-  })
-
-  socket.on("rematch grid", (roomId) => {
+  socket.on("ask for rematch", (roomId, playerId, callback) => {
     const room = rooms.find((r) => r.id === roomId)
 
-    room.players.forEach(p => {
-      p.resetGrid()
-      io.to(p.id).emit("rematch grid")
-    })
-  })
-
-  socket.on("valid grid", (roomId) => {
-    const room = rooms.find((r) => r.id === roomId)
-
-    room.wantRematch = room.wantRematch + 1 
-
-    if (room.wantRematch === 2) {
-      room.validBoards();
-      room.wantRematch = 0
-      room.players.forEach(p => {
-        io.to(p.id).emit("start game")
+    try {
+      const opponent = room.players.find((p) => p.id !== playerId)
+  
+      io.to(opponent.id).emit("ask for rematch");
+    } catch {
+      callback({
+        statu: false
       })
-      askToPlay(room.start());
+    }
+  })
+
+  socket.on("rematch grid", (roomId, callback) => {
+    const room = rooms.find((r) => r.id === roomId)
+
+    try {
+      room.players.forEach(p => {
+        p.resetGrid()
+        io.to(p.id).emit("rematch grid")
+      })
+    } catch {
+      callback({
+        status: false
+      })
+    }
+  })
+
+  socket.on("valid grid", (roomId, callback) => {
+    const room = rooms.find((r) => r.id === roomId)
+
+    try {
+      room.wantRematch = room.wantRematch + 1 
+  
+      if (room.wantRematch === 2) {
+        room.validBoards();
+        room.wantRematch = 0
+        room.players.forEach(p => {
+          io.to(p.id).emit("start game")
+        })
+        askToPlay(room.start());
+      }
+    } catch {
+      callback({
+        status: false
+      })
     }
   })
 
