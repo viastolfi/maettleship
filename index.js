@@ -44,7 +44,7 @@ app.post('/logIn', (req, res) => {
   const query = 'SELECT hashed_password FROM users WHERE pseudo = ?';
   db.query(query, [pseudo], async (err, results) => {
     if (err) {
-      console.error('Error inserting user into the database:', err);
+      console.error('Error selecting user into the database:', err);
       return res.status(500).send({message: 'Internal server error.'});
     }
     if (results.length === 1) {
@@ -160,6 +160,12 @@ io.on("connection", (socket) => {
     }
 
     console.log(`Player disconnected: ${socket.id}`);
+  })
+
+  socket.on('delete room', (roomId) => {
+    const roomIndex = rooms.findIndex((r) => r.id === roomId)
+    rooms.splice(roomIndex, 1)
+    console.log(rooms)
   })
 
   socket.on("first connection", (socketId) => {

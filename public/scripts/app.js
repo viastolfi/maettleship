@@ -233,4 +233,8 @@ document.getElementById('rematchButton').addEventListener('click', () => {
   socket.emit("ask for rematch", roomId, socket.id)
 })
 
+document.getElementById('resetRoom').addEventListener('click', () => {
+  socket.emit("delete room", roomId)
+})
+
 setTimeout(startConnection, 100);
