@@ -70,6 +70,7 @@ The current state of maettleship is the following one
 - [X] Security improvement (hashed password, sql injection handling)
 - [X] Reverse proxy for better URL
 - [X] HTTPS implementation
+- [X] General error handling
 
 # TODO
 
@@ -78,7 +79,6 @@ Those point are the feature I still need to introduce
 - [ ] UX improvement
 - [ ] Player historic (link to its account)
 - [ ] Global scoreboard
-- [ ] General error handling
 - [ ] (lot of) debug
 
 # Author
