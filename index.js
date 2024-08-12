@@ -169,8 +169,6 @@ io.on("connection", (socket) => {
   socket.on("handle error", (id, roomId) => {
     const room = rooms.find((r) => r.id === roomId)
 
-    console.log(room)
-
     if (room != null) {
       const playerIndex = room.players.findIndex((p) => p.id === id)
       room.players.splice(playerIndex, 1)
@@ -193,6 +191,17 @@ io.on("connection", (socket) => {
         const decoded = jwt.verify(authToken, secretKey);
         const username = decoded.pseudo;
         let player = new Player(socketId, username);
+
+        const query = 'SELECT id FROM users WHERE pseudo = ?'
+        db.query(query, [player.username], (err, results) => {
+          if (err) {
+            // TODO
+          }
+          if (results.length === 1) {
+            player.dbId = results[0].id
+          }
+        });
+
         players.push(player);
       } catch (ex) {
         console.error('Invalid token:', ex);
@@ -241,16 +250,40 @@ io.on("connection", (socket) => {
       callback({
         status: true
       })
-  
-      room.addPlayer(players.find((p) => p.id === id));
+
+      const player1 = players.find((p) => p.id === id);
+      const player2 = room.players.find((p) => p.id !== player1.id)
+      
+      room.addPlayer(player1);
       room.validBoards();
+
+      const ids = [player1.dbId, player2.dbId].sort((a, b) => a - b)
+
+      var query = 'SELECT * FROM scoreboards WHERE player1 = ? AND player2 = ?';
+      db.query(query, [ids[0], ids[1]], async (err, results) => {
+        if (err) {
+          // TODO
+        }
+        if (results.length === 0) {
+          query = 'INSERT INTO scoreboards (player1, player2) VALUES (?, ?)';
+          db.query(query, [ids[0], ids[1]], async (err, results) => {
+            if (err) {
+              console.log(err)
+            }
+            if (results.length === 1) {
+              console.log("Scoreboard create in base")
+            }
+          })
+        }
+      })
   
       for (let i = 0; i < room.players.length; i++) {
         io.to(room.players[i].id).emit("start game")
       }
   
       askToPlay(room.start());
-    } catch {
+    } catch (e){
+      console.log(e)
       callback({
         status: false,
         reason: "exception"
@@ -262,8 +295,29 @@ io.on("connection", (socket) => {
     let room = rooms.find((r) => r.id === roomId);
 
     try {
-      sendMoveToPlayers(room.move(move));
-    } catch {
+      const results = room.move(move)
+
+      if (results.isWin) {
+        const winner = results.players.find((p) => p.id === results.player)
+        const loser = results.players.find((p) => p.id !== winner.id)
+        const alteredRow = "player" + winner.dbId + "Win"
+        const ids = [winner.dbId, loser.dbId].sort((a, b) => a - b)
+
+        const getPseudoQuery = `UPDATE scoreboards SET ${alteredRow} = ${alteredRow} + 1 WHERE player1 = ? AND player2 = ?`
+        db.query(getPseudoQuery, [ids[0], ids[1]], (err, results) => {
+          if (err) {
+            console.log(err)
+          }
+          console.log(results)
+          if (results.length === 1) {
+            console.log("Scoreboards update")
+          }
+        });
+      }
+
+      sendMoveToPlayers(results);
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -295,7 +349,8 @@ io.on("connection", (socket) => {
         status: true,
         player: out,
       });
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -310,7 +365,8 @@ io.on("connection", (socket) => {
       callback({  
         status: true,
       });
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -327,7 +383,8 @@ io.on("connection", (socket) => {
       });
   
       rooms.splice(roomIndex, 1)
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -338,7 +395,8 @@ io.on("connection", (socket) => {
     const player = rooms.find((r) => r.id === roomId).players[0]
     try {
       player.resetGrid();
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -352,7 +410,8 @@ io.on("connection", (socket) => {
       const index = player.pieces.findIndex((p) => p.id === piece.id);
   
       player.pieces[index] = piece;
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -364,7 +423,8 @@ io.on("connection", (socket) => {
       players
         .find((p) => p.id === playerId)
         .pieces.find((piece) => piece.id === pieceId).isSelected = status;
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -380,7 +440,8 @@ io.on("connection", (socket) => {
       const opponent = room.players.find((p) => p.id !== playerId)
   
       io.to(opponent.id).emit("ask for rematch");
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         statu: false
       })
@@ -395,7 +456,8 @@ io.on("connection", (socket) => {
         p.resetGrid()
         io.to(p.id).emit("rematch grid")
       })
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })
@@ -416,7 +478,8 @@ io.on("connection", (socket) => {
         })
         askToPlay(room.start());
       }
-    } catch {
+    } catch (e) {
+      console.log(e)
       callback({
         status: false
       })

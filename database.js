@@ -18,3 +18,7 @@ connection.connect((err) => {
 */
 
 module.exports = connection;
+
+// TODO
+// Change how i insert in my db so player1 = player1Win
+// Maybe store the players positions in the database directly in the room object
