@@ -1,4 +1,3 @@
-const uuid = require("uuid");
 const { Grid } = require("./Grid.js");
 const { Piece } = require("./Piece.js");
 
@@ -14,11 +13,11 @@ class Player {
 
   createPiece() {
     this.pieces.push(new Piece(1, { x: 0, y: 0 }, { x: 0, y: 0 }));
-    //this.pieces.push(new Piece(1, { x: 0, y: 3 }, { x: 0, y: 3 }));
-    //this.pieces.push(new Piece(2, { x: 2, y: 2 }, { x: 2, y: 3 }));
-    //this.pieces.push(new Piece(2, { x: 8, y: 2 }, { x: 8, y: 3 }));
-    //this.pieces.push(new Piece(3, { x: 4, y: 3 }, { x: 4, y: 5 }));
-    //this.pieces.push(new Piece(4, { x: 6, y: 6 }, { x: 6, y: 9 }));
+    this.pieces.push(new Piece(1, { x: 0, y: 3 }, { x: 0, y: 3 }));
+    this.pieces.push(new Piece(2, { x: 2, y: 2 }, { x: 2, y: 3 }));
+    this.pieces.push(new Piece(2, { x: 8, y: 2 }, { x: 8, y: 3 }));
+    this.pieces.push(new Piece(3, { x: 4, y: 3 }, { x: 4, y: 5 }));
+    this.pieces.push(new Piece(4, { x: 6, y: 6 }, { x: 6, y: 9 }));
 
     this.pieces.forEach((piece) => {
       for (let i = piece.startPos.x; i <= piece.endPos.x; i++) {

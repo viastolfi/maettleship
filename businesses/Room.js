@@ -38,7 +38,7 @@ class Room {
             ret = {isMove: true, players: this.players, isHit: playedCase.isShip, 
                 isWin: this.checkWin()}
 
-            if(!ret.isHit || ret.isWin) {
+            if(!ret.isHit) {
                 let tmp = this.actualPlayer;
                 this.actualPlayer = this.ennemy;
                 this.ennemy = tmp;

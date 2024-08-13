@@ -87,12 +87,29 @@ app.post('/register', async (req, res) => {
     }
   });
   
-  const query = 'INSERT INTO users (pseudo, hashed_password) VALUES (?, ?)';
+  var query = 'INSERT INTO users (pseudo, hashed_password) VALUES (?, ?)';
   db.query(query, [pseudo, hashedPassword], (err, results) => {
     if (err) {
       console.error('Error inserting user into the database:', err);
       return res.status(500).send('Internal server error.');
     }
+
+    query = 'SELECT id FROM users WHERE pseudo = ?'
+    db.query(query, [pseudo], (err, results) => {
+      if (err) {
+        console.error('Error inserting user into the database:', err);
+        return res.status(500).send('Internal server error.');
+      }
+      if (results.length === 1) {
+        query = 'INSERT INTO score (playerId) VALUES (?)';
+        db.query(query, [results[0].id], (err, results) => {
+          if (err) {
+            console.error('Error inserting user into the database:', err);
+            return res.status(500).send('Internal server error.');
+          }
+        })
+      }
+    });
 
     const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
     res.cookie('authToken', token, { httpOnly: true, secure: false });
@@ -300,17 +317,27 @@ io.on("connection", (socket) => {
       if (results.isWin) {
         const winner = results.players.find((p) => p.id === results.player)
         const loser = results.players.find((p) => p.id !== winner.id)
-        const alteredRow = "player" + winner.dbId + "Win"
+        const alteredRow = "player" + (winner.dbId > loser.dbId ? 2 : 1) + "Win"
         const ids = [winner.dbId, loser.dbId].sort((a, b) => a - b)
 
-        const getPseudoQuery = `UPDATE scoreboards SET ${alteredRow} = ${alteredRow} + 1 WHERE player1 = ? AND player2 = ?`
-        db.query(getPseudoQuery, [ids[0], ids[1]], (err, results) => {
+        var query = 'UPDATE score SET wins = wins + 1 WHERE playerId = ?'
+        db.query(query, [winner.dbId], (err, results) => {
           if (err) {
             console.log(err)
           }
-          console.log(results)
-          if (results.length === 1) {
-            console.log("Scoreboards update")
+        })
+
+        query = 'UPDATE score SET loses = loses + 1 WHERE playerId = ?'
+        db.query(query, [loser.dbId], (err, results) => {
+          if (err) {
+            console.log(err)
+          }
+        })
+
+        query = `UPDATE scoreboards SET ${alteredRow} = ${alteredRow} + 1 WHERE player1 = ? AND player2 = ?`
+        db.query(query, [ids[0], ids[1]], (err, results) => {
+          if (err) {
+            console.log(err)
           }
         });
       }
