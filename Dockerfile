@@ -8,9 +8,4 @@ COPY . .
 
 EXPOSE 3000
 
-ENV DB_HOST=db
-ENV DB_USER=root
-ENV DB_PASSWORD=password
-ENV DB_NAME=battleship
-
 CMD ["npm", "run", "prod"]

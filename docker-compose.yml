@@ -9,11 +9,17 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      - DB_HOST=db
-      - DB_USER=root
-      - DB_PASSWORD=password
-      - DB_NAME=battleship
-      - COOKIE_SECRET_KEY=dhdgdnjejf
+      DB_HOST: /run/secrets/db_host
+      DB_USER: /run/secrets/db_user
+      DB_PASSWORD: /run/secrets/db_password
+      DB_NAME: /run/secrets/db_name
+      COOKIE_SECRET_KEY: /run/secrets/cookie_key
+    secrets:
+      - db_host
+      - db_user
+      - db_password
+      - db_name
+      - cookie_key
     networks:
       - app-network
     depends_on:
@@ -23,8 +29,11 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: battleship
+      MYSQL_ROOT_PASSWORD: /run/secrets/db_password
+      MYSQL_DATABASE: /run/secrets/db_name
+    secrets:
+      - db_password
+      - db_name
     ports:
       - "3306:3306"
     networks:
@@ -52,6 +61,18 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done;'"
+
+secrets:
+  db_host:
+    file: secrets/db_host.txt
+  db_user:
+    file: secrets/db_user.txt
+  db_password:
+    file: secrets/db_password.txt
+  db_name:
+    file: secrets/db_name.txt
+  cookie_key:
+    file: secrets/cookie_key.txt
 
 networks:
   app-network:
