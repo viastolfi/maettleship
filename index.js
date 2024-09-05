@@ -9,8 +9,8 @@ const http = require("http").Server(app);
 const io = require("socket.io")(http);
 
 const db = require(path.normalize(`${__dirname}/database.js`))
-const { Room } = require(path.normalize(`${__dirname}/businesses/Room.js`));
-const { Player } = require(path.normalize(`${__dirname}/businesses/Player.js`));
+const { Room } = require(path.normalize(`${__dirname}/models/Room.js`));
+const { Player } = require(path.normalize(`${__dirname}/models/Player.js`));
 const secretKey = process.env.COOKIE_SECRET_KEY;
 
 const port = 3000;
