@@ -9,16 +9,14 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      DB_HOST: /run/secrets/db_host
-      DB_USER: /run/secrets/db_user
-      DB_PASSWORD: /run/secrets/db_password
-      DB_NAME: /run/secrets/db_name
+      DB_HOST: db
+      DB_USER_FILE: /run/secrets/db_user 
+      DB_USER_PASSWORD_FILE: /run/secrets/db_user_password
+      DB_NAME: battleship
       COOKIE_SECRET_KEY: /run/secrets/cookie_key
     secrets:
-      - db_host
       - db_user
-      - db_password
-      - db_name
+      - db_user_password
       - cookie_key
     networks:
       - app-network
@@ -29,11 +27,14 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/db_password
-      MYSQL_DATABASE: /run/secrets/db_name
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_USER_FILE: /run/secrets/db_user
+      MYSQL_PASSWORD_FILE: /run/secrets/db_user_password
+      MYSQL_DATABASE: battleship
     secrets:
+      - db_user_password
       - db_password
-      - db_name
+      - db_user
     ports:
       - "3306:3306"
     networks:
@@ -63,14 +64,12 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done;'"
 
 secrets:
-  db_host:
-    file: secrets/db_host.txt
+  db_user_password:
+    file: secrets/db_user_password.txt
   db_user:
     file: secrets/db_user.txt
   db_password:
     file: secrets/db_password.txt
-  db_name:
-    file: secrets/db_name.txt
   cookie_key:
     file: secrets/cookie_key.txt
 
