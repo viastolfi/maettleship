@@ -30,9 +30,11 @@ npm install
 Now, you have the repo with all the dependency. After that, you'll have to create the database that is used for the account creation and usage.
 
 ```
-mysql -u user -p
-> mysql source db_script.sql
+chmod +x ./tools/db_docker_init.sh
+./tools/db_docker_init.sh
 ```
+
+I choose to use container for mysql to avoid bugs that can happened when working on other computers that my main one. It could also fix bug you could face so it's better overall.
 
 Finally, you need a `.env`file with your personnal mysql information so follow those steps. You also need this file to specify your cookie's private key so you can create them
 
@@ -43,12 +45,17 @@ touch .env
 The .env file should look like that
 
 ```
-DB_USER=userName
-DB_PASSWORD=UserPassword
-DB_NAME=maettleship
+ACTUAL_ENV=dev
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=battleship
 DB_HOST=localhost
 COOKIE_SECRET_KEY=secret_key
 ```
+
+You can use the env file as it is in my example but if you want make it yours just don't forget to have the same variable in your env file that in you mysql config.
+
+The `ACTUAL_ENV` variable aim to make the switch between dev and prod environment easier. You won't have to change it if you want to run maettleship localy.
 
 Now you can start the server using the following command on your terminal.
 

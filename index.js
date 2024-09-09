@@ -40,7 +40,7 @@ app.get('/error', (req, res) => {
 
 app.post('/logIn', (req, res) => {
   const { pseudo, password } = req.body;
-
+	
   if (!pseudo || !password) {
     return res.status(400).send('pseudo and password are required.');
   }

@@ -3,11 +3,16 @@ const fs = require('node:fs');
 
 
 try {
-	const db_user_password = fs.readFileSync(process.env.DB_USER_PASSWORD_FILE, 'utf8').replace(/\r?\n|\r/g, "");
-	const db_user = fs.readFileSync(process.env.DB_USER_FILE, 'utf8').replace(/\r?\n|\r/g, "");
+	let db_user = ""
+	let db_user_password = ""
 
-
-	console.log(db_user)
+	if (process.env.ACTUAL_ENV === 'dev') {
+		db_user = process.env.DB_USER
+		db_user_password = process.env.DB_PASSWORD
+	} else {
+		const db_user_password = fs.readFileSync(process.env.DB_USER_PASSWORD_FILE, 'utf8').replace(/\r?\n|\r/g, "");
+		const db_user = fs.readFileSync(process.env.DB_USER_FILE, 'utf8').replace(/\r?\n|\r/g, "");
+	}
 
 	const connection = mysql.createPool({
    		host: process.env.DB_HOST,
