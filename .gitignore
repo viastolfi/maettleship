@@ -1,6 +1,5 @@
 node_modules/
 .vscode/
-.env
 nginx.conf
 nginx/
 secrets/

@@ -25,6 +25,10 @@ app.get('/',  (req, res) => {
   return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/connectionView.html')))
 })
 
+app.get('/scoreboard',  (req, res) => {
+  return res.sendFile(path.normalize(path.join(__dirname, 'public/pages/scoreboardView.html')))
+})
+
 app.get('/register', (req, res) => {
     return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/signupView.html')))
 })
@@ -201,8 +205,9 @@ io.on("connection", (socket) => {
 
   socket.on("first connection", (socketId) => {
     const cookies = socket.request.headers.cookie;
-    const authToken = cookies.split('; ').find(cookie => cookie.startsWith('authToken=')).split('=')[1];
+    if (!cookies) return
 
+    const authToken = cookies.split('; ').find(cookie => cookie.startsWith('authToken=')).split('=')[1];
     if (authToken) {
       try {
         const decoded = jwt.verify(authToken, secretKey);

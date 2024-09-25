@@ -9,6 +9,7 @@ To use maettleship you'll need the following app on your computer
 
 * node js and npm
 * mysql
+* docker
 
 # Installation
 
@@ -45,12 +46,12 @@ touch .env
 The .env file should look like that
 
 ```
-ACTUAL_ENV=dev
+echo "ACTUAL_ENV=dev
 DB_USER=root
 DB_PASSWORD=password
 DB_NAME=battleship
 DB_HOST=localhost
-COOKIE_SECRET_KEY=secret_key
+COOKIE_SECRET_KEY=secret_key" > .env
 ```
 
 You can use the env file as it is in my example but if you want make it yours just don't forget to have the same variable in your env file that in you mysql config.
