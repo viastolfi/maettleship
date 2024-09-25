@@ -10,6 +10,7 @@ To use maettleship you'll need the following app on your computer
 * node js and npm
 * mysql
 * docker
+* cron # Not mandatory but usefull
 
 # Installation
 
@@ -37,30 +38,51 @@ chmod +x ./tools/db_docker_init.sh
 
 I choose to use container for mysql to avoid bugs that can happened when working on other computers that my main one. It could also fix bug you could face so it's better overall.
 
-Finally, you need a `.env`file with your personnal mysql information so follow those steps. You also need this file to specify your cookie's private key so you can create them
+Finally, you will find a `.env`file with your personnal mysql information and cookie private key 
 
-```
-touch .env
-```
-
-The .env file should look like that
-
-```
-echo "ACTUAL_ENV=dev
-DB_USER=root
-DB_PASSWORD=password
-DB_NAME=battleship
-DB_HOST=localhost
-COOKIE_SECRET_KEY=secret_key" > .env
-```
-
-You can use the env file as it is in my example but if you want make it yours just don't forget to have the same variable in your env file that in you mysql config.
+You can use the env file as it is but if you want make it yours just don't forget to have the same variable in your env file that in you mysql config.
 
 The `ACTUAL_ENV` variable aim to make the switch between dev and prod environment easier. You won't have to change it if you want to run maettleship localy.
 
 Now you can start the server using the following command on your terminal.
 
 `npm run dev`
+
+### Database auto save
+
+I add a way to save your database automaticly so you want loose your data !
+
+To use it, you can read the script you can find here `./tools/db_auto_save.sh`
+
+This script use the mysqldump command to create a file that you'll be able to use in your database to inject back the data after you recreate your mysql container.
+
+To make it automatic, you can use Cron 
+
+#### Step 
+
+Install cron
+
+```bash
+sudo apt install cron
+```
+
+Modify the cron file to make it run your command automaticly
+
+```bash
+crontab -e
+
+# Add this line at the bottom of the oppened file
+# In this example, I run my script every day at 12am (UTC) and save logs
+0 12 * * * /home/dev/maettleship/tools/db_auto_save.sh >> /home/dev/maettleship_save/db_save.log 2>&1 
+```
+
+Now, you will find a `maettleship_save` directory with the logs and your saves updated every year.
+
+To use the `*.sql` file in your database after the db crash, you can use the following command
+
+```bash
+cat /maettleship_save/LAST_DATE/battleship.sql | docker exec -i your_mysql_container_name mysql -u root -p yourdatabase
+```
 
 # Current State
 
@@ -79,6 +101,7 @@ The current state of maettleship is the following one
 - [X] Reverse proxy for better URL
 - [X] HTTPS implementation
 - [X] General error handling
+- [X] Database automatic save and logs
 
 # TODO
 
