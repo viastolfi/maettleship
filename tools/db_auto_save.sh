@@ -27,6 +27,9 @@ else
     docker exec -i maettleship_db_1 mysqldump -u $DB_USER -p$db_password_file $db_name_file > "$BACKUP_DIR/$TIMESTAMP/$db_name_file.sql"
 fi
 
+echo "DATA SAVED ON THE $BACKUP_DIR/$TIMESTAMP/$db_name_file.sql file."
+echo "LOGS WRITE ON THE $BACKUP_DIR/db_save.log file"
+
 find "$BACKUP_DIR/" -type d -mtime +7 -exec rm -rf {} \;
 
 echo " " 
