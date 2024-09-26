@@ -26,11 +26,11 @@ app.get('/',  (req, res) => {
 })
 
 app.get('/scoreboard',  (req, res) => {
-  return res.sendFile(path.normalize(path.join(__dirname, 'public/pages/scoreboardView.html')))
+  return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/scoreboardView.html')))
 })
 
 app.get('/register', (req, res) => {
-    return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/signupView.html')))
+  return res.sendFile(path.normalize(path.join(__dirname, '/public/pages/signupView.html')))
 })
 
 app.get('/game', (req, res) => {
@@ -130,7 +130,7 @@ app.get('/user-info', (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(token, secretKey);
+    const decoded = jwt.verify(token, secretKey); 
     const query = 'SELECT pseudo FROM users WHERE pseudo = ?';
     db.query(query, [decoded.pseudo], (err, results) => {
       if (err) {
@@ -143,6 +143,7 @@ app.get('/user-info', (req, res) => {
       return res.json(results[0]);
     });
   } catch (ex) {
+    console.log(ex)
     return res.status(400).send('Invalid token.');
   }
 });
