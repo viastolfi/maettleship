@@ -50,7 +50,7 @@ Now you can start the server using the following command on your terminal.
 
 ### Database auto save
 
-I add a way to save your database automaticly so you want loose your data !
+I added a way to save your database automaticly so you won't loose your data !
 
 To use it, you can read the script you can find here `./tools/db_auto_save.sh`
 
