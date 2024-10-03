@@ -68,6 +68,7 @@ socket.on("played move", (isHit, isWin) => {
   drawEnnemyGrid();
 });
 
+
 socket.on('opponent left', () => {
   const modal = document.getElementById('opponentLeftModal');
   modal.style.display = 'block';

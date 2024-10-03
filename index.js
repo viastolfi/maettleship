@@ -88,38 +88,38 @@ app.post('/register', async (req, res) => {
     }
     if (results.length !== 0) {
       return res.status(403).send({message:'User already exist. Try another username'});
-    }
-  });
-  
-  var query = 'INSERT INTO users (pseudo, hashed_password) VALUES (?, ?)';
-  db.query(query, [pseudo, hashedPassword], (err, results) => {
-    if (err) {
-      console.error('Error inserting user into the database:', err);
-      return res.status(500).send('Internal server error.');
-    }
+    } else {
+      var query = 'INSERT INTO users (pseudo, hashed_password) VALUES (?, ?)';
+      db.query(query, [pseudo, hashedPassword], (err, results) => {
+        if (err) {
+          console.error('Error inserting user into the database:', err);
+          return res.status(500).send('Internal server error.');
+        }
 
-    query = 'SELECT id FROM users WHERE pseudo = ?'
-    db.query(query, [pseudo], (err, results) => {
-      if (err) {
-        console.error('Error inserting user into the database:', err);
-        return res.status(500).send('Internal server error.');
-      }
-      if (results.length === 1) {
-        query = 'INSERT INTO score (playerId) VALUES (?)';
-        db.query(query, [results[0].id], (err, results) => {
+        query = 'SELECT id FROM users WHERE pseudo = ?'
+        db.query(query, [pseudo], (err, results) => {
           if (err) {
             console.error('Error inserting user into the database:', err);
             return res.status(500).send('Internal server error.');
           }
-        })
-      }
-    });
+          if (results.length === 1) {
+            query = 'INSERT INTO score (playerId) VALUES (?)';
+            db.query(query, [results[0].id], (err, results) => {
+              if (err) {
+                console.error('Error inserting user into the database:', err);
+                return res.status(500).send('Internal server error.');
+              }
+            })
+          }
+        });
 
-    const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
-    res.cookie('authToken', token, { httpOnly: true, secure: false });
+        const token = jwt.sign({ pseudo }, secretKey, { expiresIn: '1h' });
+        res.cookie('authToken', token, { httpOnly: true, secure: false });
 
-    res.status(201).send({message: 'User registered successfully.', redirectUrl: '/game' });
-  })
+        res.status(201).send({message: 'User registered successfully.', redirectUrl: '/game' });
+      })
+    }
+  });
 });
 
 app.get('/user-info', (req, res) => {
@@ -423,7 +423,6 @@ io.on("connection", (socket) => {
       })
     }
   })
-
   socket.on("reset grid", (roomId, callback) => {
     const player = rooms.find((r) => r.id === roomId).players[0]
     try {
