@@ -46,7 +46,7 @@ app.post('/logIn', (req, res) => {
   const { pseudo, password } = req.body;
 	
   if (!pseudo || !password) {
-    return res.status(400).send('pseudo and password are required.');
+    return res.status(400).send({message:'pseudo and password are required.'});
   }
 
   const query = 'SELECT hashed_password FROM users WHERE pseudo = ?';
@@ -75,7 +75,11 @@ app.post('/register', async (req, res) => {
   const { pseudo, password } = req.body;
 
   if (!pseudo || !password) {
-    return res.status(400).send('Email and password are required.');
+    return res.status(400).send({message:'Pseudo and password are required.'});
+  }
+
+  if (pseudo.length > 255 || password.length > 255) {
+    return res.status(403).send({message:'Pseudo and password must be 255 caracters max'});
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

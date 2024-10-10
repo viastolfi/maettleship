@@ -17,7 +17,8 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
 
         const result = await response.json();
-        
+
+
         if (response.ok) {
             messageDiv.textContent = 'User registered successfully!';
             messageDiv.style.color = 'green';
