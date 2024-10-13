@@ -15,6 +15,9 @@ socket.on("connect", () => {
   document
     .querySelector("#join")
     .addEventListener("click", onJoinRoom());
+  document
+    .querySelector("#joinQueue")
+    .addEventListener("click", onJoinQueue());
 })
 
 
@@ -175,6 +178,29 @@ function onCreateRoom() {
       roomkeyHolder.innerHTML += `Your room key is : <strong>` + roomId + `</strong>`;
     });
   };
+
+  return handler;
+}
+
+function onJoinQueue() {
+  const handler = function(event) {
+    event.preventDefault();
+
+    const loader = document.querySelector("#loader");
+    const errorHolder = document.querySelector("#errorHandler")
+
+    socket.emit("join matchmaking", socket.id, (response) => {
+      if (response.status !== true) {
+        if (response.reason === "exception") {
+          handleError()
+        }
+        errorHolder.textContent = "Error : " + response.message
+      } else {
+        roomId = response.roomId;
+        loader.style.display = "none"
+      }
+    });
+  }
 
   return handler;
 }

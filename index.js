@@ -157,6 +157,7 @@ app.get('/user-info', (req, res) => {
 
 // #region socket and game
 
+let matchmaking_stack = [];
 let rooms = [];
 let players = [];
 
@@ -317,6 +318,43 @@ io.on("connection", (socket) => {
       })
     }
   });
+
+  socket.on("join matchmaking", (id, callback) => {
+    try {
+      let player = players.find((p) => p.id === id)
+      
+      if (matchmaking_stack.length > 0) {
+        let room = matchmaking_stack.pop();
+        room.addPlayer(player);
+
+        callback({
+          status: true,
+          roomId: room.id,
+        })
+
+        rooms.push(room)
+        room.validBoards();
+        for (let i = 0; i < room.players.length; i++) {
+          io.to(room.players[i].id).emit("start game")
+        }
+        askToPlay(room.start());
+      } else {
+        let room = new Room(); 
+        room.addPlayer(player);
+        matchmaking_stack.push(room);
+        callback({
+          status: true,
+          roomId: room.id,
+        })
+      }
+    } catch (e) {
+      console.log(e);
+      callback({
+        status: false,
+        reason: "exception",
+      })
+    }
+  })
 
   socket.on("play", (roomId, id, move, callback) => {
     let room = rooms.find((r) => r.id === roomId);
