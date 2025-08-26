@@ -65,3 +65,29 @@
     justify-content: center;
     gap: 1rem;
 }
+
+#inGameNotification {
+    min-width: 250px;
+    max-width: 350px;
+    background-color: rgba(0, 123, 255, 0.8); /* Background with transparency */
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Soft shadow for a "popup" feel */
+    opacity: 0; /* Start hidden */
+    transition: opacity 0.5s ease; /* Smooth transition */
+    z-index: 1050; /* Ensure it’s above other elements */
+}
+
+.notification-message {
+    margin: 0;
+}
+
+#inGameNotification.show {
+    opacity: 1; /* Show notification smoothly */
+}
+
+.fade-out {
+    opacity: 0; /* Fade out effect */
+    transition: opacity 0.5s ease;
+}

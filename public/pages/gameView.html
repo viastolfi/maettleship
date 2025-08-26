@@ -10,8 +10,13 @@
         <title>Maettleship</title>
     </head>
     <body class="d-flex justify-content-center align-items-center vh-100">
-    <div id="container" class="text-center">
-        
+    <div id="inGameNotification" class="position-fixed top-50 start-50 translate-middle text-center">
+        <h2 class="notification-message d-none" id="play_notification">You have to play</h2>
+        <h2 class="notification-message d-none" id="hit_notification">Hit!</h2>
+        <h2 class="notification-message d-none" id="win_notification">WIN!</h2>
+    </div>
+
+    <div id="container" class="text-center">    
         <!-- Game Board Container -->
         <div class="board-container mb-4" id="game">
             <div class="d-flex justify-content-center mb-4">
@@ -20,9 +25,9 @@
                     <button class="btn btn-info position-absolute" style="top: 50%; transform: translate(100%, -50%);" id="rotate" type="submit">
                         Rotate
                     </button>
+                    <canvas id="ennemy_board" class="d-none" width="301" height="301"></canvas>
                 </div>
             </div>
-            <canvas id="ennemy_board" style="display: none;" width="301" height="301"></canvas>
         </div>
         
         <div id="roomkeyHolder"></div>
@@ -57,11 +62,6 @@
         see scorebaord
     </a>
 
-        <div id="inGameNotification">
-            <h2 style="display: none;" id="play_notification">You have to play</h2>
-            <h2 style="display: none;" id="hit_notification">Hit !</h2>
-            <h2 style="display: none;" id="win_notification">WIN !</h2>
-        </div>
 
 
         <div class="modal" id="opponentLeftModal">

@@ -30,12 +30,12 @@ export function handleError() {
 
 socket.on("start game", () => {
   const ennemyBoard = document.querySelector("#ennemy_board");
-  const waitChoiceModal = document.getElementById("waitChoiceModal")
-  const validGrid = document.getElementById("validGrid")
+  const rotateButton = document.querySelector("#rotate")
+  const waitingScreen = document.querySelector("#waiting-message")
 
-  validGrid.style.display = 'none'
-  waitChoiceModal.style.display = 'none'
-  ennemyBoard.style.display = 'block'
+  ennemyBoard.classList.remove('d-none')
+  rotateButton.classList.add('d-none')
+  waitingScreen.classList.add('d-none')
 
   drawGrid();
   drawEnnemyGrid();
@@ -52,7 +52,7 @@ socket.on("end game", () => {
 
 socket.on("play", () => {
   const notification = document.querySelector("#play_notification");
-  notification.style.display = 'block'
+  showNotification(notification)
   play();
 });
 
@@ -279,16 +279,6 @@ function startWaitingAnimation() {
   };
 }
 
-function stopWaitingAnimation() {
-  // Clear the interval to stop the animation
-  clearInterval(intervalId);
-
-  const waitingMessage = document.getElementById("waiting-message");
-
-  // Hide the element (optionally, you can remove it if not needed again)
-  waitingMessage.style.display = "none"; // Or use waitingMessage.remove() to delete completely
-}
-
 document.getElementById('goToMenuButton').addEventListener('click', () => {
   sendGameEnded()
 })
@@ -310,3 +300,37 @@ document.getElementById('rematchButton').addEventListener('click', () => {
     }
   })
 })
+
+function showNotification(messageId) {
+  const notificationContainer = document.getElementById("inGameNotification");
+  const messages = document.querySelectorAll(".notification-message");
+
+  // Hide all notifications first
+  messages.forEach(message => message.classList.add("d-none"));
+  
+  // Show the requested message
+  const messageToShow = document.getElementById(messageId);
+  if (messageToShow) {
+      messageToShow.classList.remove("d-none");
+  }
+
+  // Make the container visible
+  notificationContainer.classList.add("show");
+
+  // Automatically hide after 3 seconds (adjustable)
+  setTimeout(() => {
+      hideNotification();
+  }, 3000);
+}
+
+function hideNotification() {
+  const notificationContainer = document.getElementById("inGameNotification");
+  
+  // Start fade-out animation
+  notificationContainer.classList.add("fade-out");
+
+  // After fade-out transition, remove .show and .fade-out
+  setTimeout(() => {
+      notificationContainer.classList.remove("show", "fade-out");
+  }, 500); // Should match CSS transition duration
+}
